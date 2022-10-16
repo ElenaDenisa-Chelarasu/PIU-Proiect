@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFAudio", "SFAudio\SFAudio.csproj", "{D1BC0B3B-FCC8-47BB-87D9-370ADD09900C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFAudioCore", "SFAudioCore\SFAudioCore.csproj", "{1E8F3BF3-7CBF-4E18-8DFF-C172DB0F2060}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D1BC0B3B-FCC8-47BB-87D9-370ADD09900C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1BC0B3B-FCC8-47BB-87D9-370ADD09900C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1BC0B3B-FCC8-47BB-87D9-370ADD09900C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1BC0B3B-FCC8-47BB-87D9-370ADD09900C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E8F3BF3-7CBF-4E18-8DFF-C172DB0F2060}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E8F3BF3-7CBF-4E18-8DFF-C172DB0F2060}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E8F3BF3-7CBF-4E18-8DFF-C172DB0F2060}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E8F3BF3-7CBF-4E18-8DFF-C172DB0F2060}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CACAFA00-ECFD-4708-A0BC-4A5FD5386259}
+	EndGlobalSection
+EndGlobal
