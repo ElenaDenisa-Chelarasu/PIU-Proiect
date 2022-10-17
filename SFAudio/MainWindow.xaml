@@ -7,6 +7,11 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <TextBlock Margin="10">This is a TextBlock control and it comes with a very long text</TextBlock>
+        <Button Grid.Column="2" Click="HelloWorldButton_Click">Hello, World!</Button>
     </Grid>
 </Window>
