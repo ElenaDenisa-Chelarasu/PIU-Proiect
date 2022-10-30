@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SFAudio"
+        xmlns:gui="clr-namespace:SFAudioView.GUI"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
 
@@ -92,6 +93,14 @@
                 <Button>
                     <Image Height="25" Source="{StaticResource LoopButton}"/>
                 </Button>
+            </StackPanel>
+            <StackPanel>
+                <gui:AudioTrack>
+
+                </gui:AudioTrack>
+                <gui:AudioTrack>
+
+                </gui:AudioTrack>
             </StackPanel>
         </StackPanel>
     </DockPanel>

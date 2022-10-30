@@ -1,0 +1,40 @@
+﻿<UserControl x:Class="SFAudioView.GUI.AudioTrack"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:SFAudioView.GUI"
+             mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="./Resources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <StackPanel Background="White" Orientation="Horizontal">
+        <StackPanel>
+            <StackPanel Orientation="Horizontal" MinWidth="160">
+                <Button>
+                    <Image Height="25" Source="{StaticResource DropDownButton}"></Image>
+                </Button>
+                <TextBox FontSize="25">wind01</TextBox>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBox>Left:</TextBox>
+                <TextBox>50%</TextBox>
+                <Button>Mute</Button>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBox>Right:</TextBox>
+                <TextBox>50%</TextBox>
+                <Button>Mute</Button>
+            </StackPanel>
+        </StackPanel>
+        <DockPanel MinWidth="200">
+            <!-- TODO Add audio track control -->
+        </DockPanel>
+    </StackPanel>
+</UserControl>

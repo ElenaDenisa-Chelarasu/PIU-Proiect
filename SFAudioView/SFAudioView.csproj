@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\ButtonIcons\DropDownButton.png" />
     <None Remove="Resources\ButtonIcons\LoopButton.png" />
     <None Remove="Resources\ButtonIcons\PauseButton.png" />
     <None Remove="Resources\ButtonIcons\PlayButton.png" />
@@ -17,6 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\ButtonIcons\DropDownButton.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\ButtonIcons\LoopButton.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>

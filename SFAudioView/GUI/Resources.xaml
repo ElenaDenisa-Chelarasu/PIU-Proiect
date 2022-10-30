@@ -1,6 +1,8 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <BitmapImage x:Key="DropDownButton" 
+                     UriSource="/Resources/ButtonIcons/DropDownButton.png"/>
     <BitmapImage x:Key="PlayButton" 
                      UriSource="/Resources/ButtonIcons/PlayButton.png"/>
     <BitmapImage x:Key="PauseButton" 
