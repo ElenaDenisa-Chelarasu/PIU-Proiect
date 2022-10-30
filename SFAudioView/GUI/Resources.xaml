@@ -1,0 +1,17 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <BitmapImage x:Key="PlayButton" 
+                     UriSource="/Resources/ButtonIcons/PlayButton.png"/>
+    <BitmapImage x:Key="PauseButton" 
+                     UriSource="/Resources/ButtonIcons/PauseButton.png"/>
+    <BitmapImage x:Key="StopButton" 
+                     UriSource="/Resources/ButtonIcons/StopButton.png"/>
+    <BitmapImage x:Key="LoopButton" 
+                     UriSource="/Resources/ButtonIcons/LoopButton.png"/>
+    <BitmapImage x:Key="SkipLeftButton" 
+                     UriSource="/Resources/ButtonIcons/SkipLeftButton.png"/>
+    <BitmapImage x:Key="SkipRightButton" 
+                     UriSource="/Resources/ButtonIcons/SkipRightButton.png"/>
+    
+</ResourceDictionary>

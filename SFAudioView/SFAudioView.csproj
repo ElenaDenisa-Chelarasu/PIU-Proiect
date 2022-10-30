@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\ButtonIcons\LoopButton.png" />
+    <None Remove="Resources\ButtonIcons\PauseButton.png" />
+    <None Remove="Resources\ButtonIcons\PlayButton.png" />
+    <None Remove="Resources\ButtonIcons\SkipLeftButton.png" />
+    <None Remove="Resources\ButtonIcons\SkipRightButton.png" />
+    <None Remove="Resources\ButtonIcons\StopButton.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\ButtonIcons\LoopButton.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\ButtonIcons\PauseButton.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\ButtonIcons\PlayButton.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\ButtonIcons\SkipLeftButton.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\ButtonIcons\SkipRightButton.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\ButtonIcons\StopButton.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Include="App.xaml" />
+  </ItemGroup>
+
+</Project>
