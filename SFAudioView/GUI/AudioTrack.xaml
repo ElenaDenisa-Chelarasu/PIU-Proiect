@@ -15,23 +15,23 @@
     </UserControl.Resources>
 
     <StackPanel Background="White" Orientation="Horizontal">
-        <StackPanel>
-            <StackPanel Orientation="Horizontal" MinWidth="160">
+        <StackPanel MinWidth="180">
+            <DockPanel HorizontalAlignment="Stretch">
                 <Button>
                     <Image Height="25" Source="{StaticResource DropDownButton}"></Image>
                 </Button>
                 <TextBox FontSize="25">wind01</TextBox>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <TextBox>Left:</TextBox>
-                <TextBox>50%</TextBox>
-                <Button>Mute</Button>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <TextBox>Right:</TextBox>
-                <TextBox>50%</TextBox>
-                <Button>Mute</Button>
-            </StackPanel>
+            </DockPanel>
+            <DockPanel HorizontalAlignment="Stretch" >
+                <TextBox Width="60" DockPanel.Dock="Left">Left:</TextBox>
+                <TextBox Width="50">50%</TextBox>
+                <Button DockPanel.Dock="Right">Mute</Button>
+            </DockPanel>
+            <DockPanel HorizontalAlignment="Stretch">
+                <TextBox Width="60">Right:</TextBox>
+                <TextBox Width="50">50%</TextBox>
+                <Button DockPanel.Dock="Right">Mute</Button>
+            </DockPanel>
         </StackPanel>
         <DockPanel MinWidth="200">
             <!-- TODO Add audio track control -->
