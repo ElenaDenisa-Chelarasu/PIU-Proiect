@@ -16,22 +16,22 @@
 
     <StackPanel Background="White" Orientation="Horizontal" Width="300" Height="45">
         <StackPanel Height="50" Orientation="Horizontal">
-            <Button>
+            <Button x:Name="playButton">
                 <Image Source="{StaticResource PlayButton}"/>
             </Button>
-            <Button>
+            <Button x:Name="pauseButton">
                 <Image Source="{StaticResource PauseButton}"/>
             </Button>
-            <Button>
+            <Button x:Name="stopButton">
                 <Image Source="{StaticResource StopButton}"/>
             </Button>
-            <Button>
+            <Button x:Name="skipBack10SecondsButton">
                 <Image Source="{StaticResource SkipLeftButton}"/>
             </Button>
-            <Button>
+            <Button x:Name="skipForward10SecondsButton">
                 <Image Source="{StaticResource SkipRightButton}"/>
             </Button>
-            <Button>
+            <Button x:Name="loopButton">
                 <Image Source="{StaticResource LoopButton}"/>
             </Button>
         </StackPanel>

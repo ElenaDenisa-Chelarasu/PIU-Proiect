@@ -73,7 +73,7 @@
             </StatusBarItem>
         </StatusBar>
         <StackPanel>
-            <gui:MainBar HorizontalAlignment="Left">
+            <gui:MainBar x:Name="mainBarGui" HorizontalAlignment="Left">
                 
             </gui:MainBar>
             <StackPanel>
