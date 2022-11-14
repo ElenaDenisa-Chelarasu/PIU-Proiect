@@ -9,4 +9,6 @@ namespace SFAudioCore.DataTypes;
 public class AudioProject
 {
     public Dictionary<string, AudioTrack> AudioTracks { get; } = new();
+
+    //esantionarea unui fisier audio
 }

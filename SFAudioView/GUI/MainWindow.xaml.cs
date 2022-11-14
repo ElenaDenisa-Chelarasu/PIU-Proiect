@@ -31,7 +31,7 @@ public partial class MainWindow : Window
         MessageBox.Show("Hello, world!");
     }
 
-    private void MenuItem_Click(object sender, RoutedEventArgs e)
+    private void openMenuItem_Click(object sender, RoutedEventArgs e)
     {
 
     }

@@ -12,4 +12,5 @@ namespace SFAudio;
 /// </summary>
 public partial class App : Application
 {
+    //esantionarea unui fisier audio
 }

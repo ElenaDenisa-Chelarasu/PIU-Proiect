@@ -18,41 +18,40 @@
 
     <DockPanel>
         <Menu DockPanel.Dock="Top">
-            <MenuItem Header="File" 
-                      Click="MenuItem_Click">
-                <MenuItem Header="New"/>
-                <MenuItem Header="Open"/>
-                <MenuItem Header="Save"/>
-                <MenuItem Header="Save as"/>
-                <MenuItem Header="Export"/>
+            <MenuItem x:Name="fileMenuItem" Header="File">
+                <MenuItem x:Name="newMenuItem" Header="New"/>
+                <MenuItem x:Name="openMenuItem" Header="Open" Click="openMenuItem_Click" InputGestureText="Ctrl+O"/>
+                <MenuItem x:Name="saveMenuItem" Header="Save"/>
+                <MenuItem x:Name="saveAsMenuItem" Header="Save as"/>
+                <MenuItem x:Name="exportMenuItem" Header="Export"/>
                 <!-- TODO Add more things -->
             </MenuItem>
-            <MenuItem Header="Edit">
-                <MenuItem Header="Undo"/>
-                <MenuItem Header="Redo"/>
+            <MenuItem x:Name="editMenuItem" Header="Edit">
+                <MenuItem x:Name="undoMenuItem" Header="Undo"/>
+                <MenuItem x:Name="redoMenuItem" Header="Redo"/>
                 <!-- TODO Add more things -->
             </MenuItem>
-            <MenuItem Header="View">
+            <MenuItem x:Name="viewMenuItem" Header="View">
                 <!-- TODO Add more things -->
             </MenuItem>
-            <MenuItem Header="Tracks">
+            <MenuItem x:Name="tracksMenuItem" Header="Tracks">
                 <!-- TODO Add more things -->
             </MenuItem>
-            <MenuItem Header="Effects">
+            <MenuItem x:Name="effectsMenuItem" Header="Effects">
                 <!-- TODO Add more things -->
             </MenuItem>
-            <MenuItem Header="Generate">
-                <MenuItem Header="Silence"/>
-                <MenuItem Header="White noise"/>
-                <MenuItem Header="Wave"/>
+            <MenuItem x:Name="generateMenuItem" Header="Generate">
+                <MenuItem x:Name="silenceMenuItem" Header="Silence"/>
+                <MenuItem x:Name="whiteNoiseMenuItem" Header="White noise"/>
+                <MenuItem x:Name="waveMenuItem" Header="Wave"/>
                 <!-- TODO Add more things -->
             </MenuItem>
-            <MenuItem Header="Tools">
+            <MenuItem x:Name="toolsMenuItem" Header="Tools">
                 <!-- TODO Add more things -->
             </MenuItem>
             <MenuItem Header="Help">
-                <MenuItem Header="Open Help Page"/>
-                <MenuItem Header="About"/>
+                <MenuItem x:Name="helpMenuItem" Header="Open Help Page"/>
+                <MenuItem x:Name="aboutMenuItem" Header="About"/>
                 <!-- TODO Add more things -->
             </MenuItem>
         </Menu>
@@ -74,26 +73,9 @@
             </StatusBarItem>
         </StatusBar>
         <StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <Button>
-                    <Image Height="25" Source="{StaticResource PlayButton}"/>
-                </Button>
-                <Button>
-                    <Image Height="25" Source="{StaticResource PauseButton}"/>
-                </Button>
-                <Button>
-                    <Image Height="25" Source="{StaticResource StopButton}"/>
-                </Button>
-                <Button>
-                    <Image Height="25" Source="{StaticResource SkipLeftButton}"/>
-                </Button>
-                <Button>
-                    <Image Height="25" Source="{StaticResource SkipRightButton}"/>
-                </Button>
-                <Button>
-                    <Image Height="25" Source="{StaticResource LoopButton}"/>
-                </Button>
-            </StackPanel>
+            <gui:MainBar HorizontalAlignment="Left">
+                
+            </gui:MainBar>
             <StackPanel>
                 <gui:AudioTrack>
 
