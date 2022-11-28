@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Audio\digi.ogg" />
     <None Remove="Resources\ButtonIcons\DropDownButton.png" />
     <None Remove="Resources\ButtonIcons\LoopButton.png" />
     <None Remove="Resources\ButtonIcons\PauseButton.png" />
@@ -18,10 +19,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NAudio" Version="2.1.0" />
+    <PackageReference Include="SFML.Net" Version="2.5.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\Audio\digi.ogg" />
     <Resource Include="Resources\ButtonIcons\DropDownButton.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
@@ -47,6 +49,10 @@
 
   <ItemGroup>
     <Page Include="App.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SFAudioCore\SFAudioCore.csproj" />
   </ItemGroup>
 
 </Project>

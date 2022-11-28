@@ -10,11 +10,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Effects\" />
+    <Compile Remove="Effects\**" />
+    <EmbeddedResource Remove="Effects\**" />
+    <None Remove="Effects\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NAudio" Version="2.1.0" />
+    <PackageReference Include="SFML.Net" Version="2.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Domain\" />
   </ItemGroup>
 
 </Project>
