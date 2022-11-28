@@ -24,7 +24,7 @@ namespace SFAudio;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private Audio? _audio;
+    private AudioProject? _project;
 
     public MainWindow()
     {
@@ -37,29 +37,6 @@ public partial class MainWindow : Window
         MessageBox.Show("Hello, world!");
     }
 
-    private SoundBuffer? _buffer;
-    private Sound? _sound;
-
-    private void DisposeWave()
-    {
-        if (_sound != null)
-        {
-            if (_sound.Status == SoundStatus.Playing)
-            {
-                _sound.Stop();
-            }
-
-            _sound.Dispose();
-            _sound = null;
-        }
-
-        if (_buffer != null)
-        {
-            _buffer.Dispose();
-            waveMenuItem = null;
-        }
-    }
-
     /// <summary>
     /// Deschide un fisier de tip wav si ruleaza impicit
     /// TO DO: Sa nu se randeze implicit, ci doar sa deschida si sa salveze acest state, 
@@ -69,32 +46,38 @@ public partial class MainWindow : Window
     {
         var open = new OpenFileDialog
         {
-            Filter = "Wave File (*.wav)|*.wav;|Vorbis File (*.ogg)|*.ogg;"
+            Filter = "Vorbis File (*.ogg)|*.ogg;|Wave File (*.wav)|*.wav;"
         };
 
         if (open.ShowDialog() != true)
             return;
 
-        DisposeWave();
-
-        _audio = Audio.LoadFromFile(open.FileName);
-
-        mainBarGui.pauseButton.IsEnabled = true;
+        _project?.Dispose();
+        _project = new AudioProject(new[] { Audio.LoadFromFile(open.FileName) });
     }
 
-    public void playButton_Click(object sender, RoutedEventArgs e)
+    public void PlayButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_audio == null)
-            return;
-
-        _buffer ??= _audio.MakeBuffer();
-        _sound ??= new Sound(_buffer);
-        
-        _sound.Play();
+        if (_project != null)
+        {
+            _project.Playing = true;
+        }
     }
 
-    public void stopButton_Click(object sender, RoutedEventArgs e)
+    public void PauseButton_Click(object sender, RoutedEventArgs e)
     {
-        _sound?.Stop();
+        if (_project != null)
+        {
+            _project.Playing = false;
+        }
+    }
+
+    private void StopButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_project != null)
+        {
+            _project.Playing = false;
+            _project.TimeCursor = TimeSpan.Zero;
+        }
     }
 }

@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SFAudio"
-        xmlns:gui="clr-namespace:SFAudioView.GUI"
+        xmlns:g="clr-namespace:SFAudioView.GUI"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
 
@@ -73,16 +73,35 @@
             </StatusBarItem>
         </StatusBar>
         <StackPanel>
-            <gui:MainBar x:Name="mainBarGui" HorizontalAlignment="Left">
-                
-            </gui:MainBar>
+            <StackPanel Background="White" Orientation="Horizontal" Width="300" Height="45" HorizontalAlignment="Left">
+                <StackPanel Height="45" Orientation="Horizontal">
+                    <Button x:Name="PlayButton" Click="PlayButton_Click">
+                        <Image Source="{StaticResource PlayButton}"/>
+                    </Button>
+                    <Button x:Name="PauseButton" Click="PauseButton_Click">
+                        <Image Source="{StaticResource PauseButton}"/>
+                    </Button>
+                    <Button x:Name="StopButton" Click="StopButton_Click">
+                        <Image Source="{StaticResource StopButton}"/>
+                    </Button>
+                    <Button x:Name="SkipLeftButton">
+                        <Image Source="{StaticResource SkipLeftButton}"/>
+                    </Button>
+                    <Button x:Name="SkipForwardButton">
+                        <Image Source="{StaticResource SkipRightButton}"/>
+                    </Button>
+                    <Button x:Name="LoopButton">
+                        <Image Source="{StaticResource LoopButton}"/>
+                    </Button>
+                </StackPanel>
+            </StackPanel>
             <StackPanel>
-                <gui:AudioTrack>
+                <g:AudioTrack>
 
-                </gui:AudioTrack>
-                <gui:AudioTrack>
+                </g:AudioTrack>
+                <g:AudioTrack>
 
-                </gui:AudioTrack>
+                </g:AudioTrack>
             </StackPanel>
         </StackPanel>
     </DockPanel>
