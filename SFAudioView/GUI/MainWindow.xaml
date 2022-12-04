@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:SFAudio"
         xmlns:g="clr-namespace:SFAudioView.GUI"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" Closing="Window_Closing">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -20,7 +20,7 @@
         <Menu DockPanel.Dock="Top">
             <MenuItem x:Name="fileMenuItem" Header="File">
                 <MenuItem x:Name="newMenuItem" Header="New"/>
-                <MenuItem x:Name="openMenuItem" Header="Open" Click="openMenuItem_Click" InputGestureText="Ctrl+O"/>
+                <MenuItem x:Name="openMenuItem" Header="Open" Click="OpenMenuItem_Click" InputGestureText="Ctrl+O"/>
                 <MenuItem x:Name="saveMenuItem" Header="Save"/>
                 <MenuItem x:Name="saveAsMenuItem" Header="Save as"/>
                 <MenuItem x:Name="exportMenuItem" Header="Export"/>
