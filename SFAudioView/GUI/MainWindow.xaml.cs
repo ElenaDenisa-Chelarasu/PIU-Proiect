@@ -17,21 +17,26 @@ using System.IO;
 using Microsoft.Win32;
 using SFML.Audio;
 using SFAudioCore.DataTypes;
+using System.ComponentModel;
 
-namespace SFAudio;
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
-public partial class MainWindow : Window
+namespace SFAudio;
+public partial class MainWindow : Window, INotifyPropertyChanged
 {
-    private AudioEngine _project = new();
+    public AudioEngine Engine { get; } = new();
+
+    public string TimeCursorText => Engine.TimeCursor.ToString("hh\\:mm\\:ss\\.fff");
+    public string ProjectLengthText => Engine.ProjectLength.ToString("hh\\:mm\\:ss\\.fff");
 
     public MainWindow()
     {
         InitializeComponent();
         DataContext = this;
 
-        _project.PlaybackChanged += OnPlaybackChanged;
+        Engine.PlaybackChanged += OnPlaybackChanged;
+        Engine.EngineTick += OnEngineTick;
 
         OnPlaybackChanged(this, new AudioEngine.PlaybackChangedArgs()
         {
@@ -40,6 +45,16 @@ public partial class MainWindow : Window
             TimeCursor = TimeSpan.Zero
         });
     }
+
+    private void OnEngineTick(object? sender, EventArgs e)
+    {
+        // TODO: rewrite this crap
+
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TimeCursorText)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProjectLengthText)));
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     private void HelloWorldButton_Click(object sender, RoutedEventArgs e)
     {
@@ -61,10 +76,10 @@ public partial class MainWindow : Window
         if (open.ShowDialog() != true)
             return;
 
-        _project.Playing = false;
-        _project.TimeCursor = TimeSpan.Zero;
+        Engine.Playing = false;
+        Engine.TimeCursor = TimeSpan.Zero;
 
-        _project.UpdateSamples(new[]
+        Engine.UpdateSamples(new[]
         {
             new AudioSample(Audio.LoadFromFile(open.FileName), TimeSpan.Zero),
             new AudioSample(Audio.LoadFromFile(open.FileName), TimeSpan.FromSeconds(10))
@@ -73,32 +88,32 @@ public partial class MainWindow : Window
 
     public void PlayButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_project != null)
+        if (Engine != null)
         {
-            _project.Playing = true;
+            Engine.Playing = true;
         }
     }
 
     public void PauseButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_project != null)
+        if (Engine != null)
         {
-            _project.Playing = false;
+            Engine.Playing = false;
         }
     }
 
     private void StopButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_project != null)
+        if (Engine != null)
         {
-            _project.Playing = false;
-            _project.TimeCursor = TimeSpan.Zero;
+            Engine.Playing = false;
+            Engine.TimeCursor = TimeSpan.Zero;
         }
     }
 
     private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
-        _project?.Dispose();
+        Engine?.Dispose();
     }
 
     private void OnPlaybackChanged(object? sender, AudioEngine.PlaybackChangedArgs e)

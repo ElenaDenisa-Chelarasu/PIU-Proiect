@@ -15,7 +15,7 @@ public class Audio
 
     public uint SampleRate { get; set; } = 44100;
 
-    public TimeSpan Duration => TimeSpan.FromSeconds(Samples.Length / (float)SampleRate);
+    public TimeSpan Duration => TimeSpan.FromSeconds(Samples.Length / (float)SampleRate / Channels);
 
     public static Audio LoadFromFile(string fileName)
     {

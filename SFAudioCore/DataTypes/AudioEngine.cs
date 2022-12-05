@@ -56,12 +56,13 @@ public class AudioEngine : IDisposable
             Time elapsed = clock.Restart();
             Thread.Sleep(1);
 
+            UpdatePlayers();
+
             if (_playing)
             {
                 lock (_lock)
                 {
                     _timeCursor += TimeSpan.FromSeconds(elapsed.AsSeconds());
-                    UpdatePlayers();
                     if (_timeCursor >= ProjectLength)
                     {
                         if (_looping)
@@ -75,6 +76,8 @@ public class AudioEngine : IDisposable
                     }
                 }
             }
+
+            EngineTick?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -145,6 +148,20 @@ public class AudioEngine : IDisposable
 
                 _players[sample].Play();
             }
+
+            // Check for desync
+            foreach ((var sample, var sound) in _players)
+            {
+                TimeSpan playingOffset = TimeSpan.FromSeconds(sound.PlayingOffset.AsSeconds());
+
+                var delta = TimeCursor - (playingOffset + sample.Start);
+
+                if (delta >= TimeSpan.FromMilliseconds(1))
+                {
+                    // Update positions
+                    sound.PlayingOffset = Time.FromSeconds((float)(TimeCursor - sample.Start).TotalSeconds);
+                }
+            }
         }
     }
 
@@ -194,6 +211,8 @@ public class AudioEngine : IDisposable
     }
 
     public event EventHandler<PlaybackChangedArgs>? PlaybackChanged;
+
+    public event EventHandler? EngineTick;
 
     protected virtual void Dispose(bool disposing)
     {
