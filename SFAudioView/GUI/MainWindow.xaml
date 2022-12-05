@@ -7,7 +7,7 @@
         xmlns:g="clr-namespace:SFAudioView.GUI"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800" Closing="Window_Closing">
-
+    
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -94,6 +94,11 @@
                         <Image Source="{StaticResource LoopButton}"/>
                     </Button>
                 </StackPanel>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Name="TimeCursor" Text="{Binding TimeCursorText, Mode=OneWay}"/>
+                <TextBlock Text="/"/>
+                <TextBlock Name="TotalTime" Text="{Binding ProjectLengthText, Mode=OneWay}"/>
             </StackPanel>
             <StackPanel>
                 <g:AudioTrack>
