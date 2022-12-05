@@ -13,6 +13,10 @@ public class Audio
 
     public float[] Samples { get; set; } = Array.Empty<float>();
 
+    public uint SampleRate { get; set; } = 44100;
+
+    public TimeSpan Duration => TimeSpan.FromSeconds(Samples.Length / (float)SampleRate / Channels);
+
     public static Audio LoadFromFile(string fileName)
     {
         var buffer = new SoundBuffer(fileName);
@@ -20,12 +24,13 @@ public class Audio
         return new Audio
         {
             Channels = buffer.ChannelCount,
-            Samples = buffer.Samples.Select(x => x / (float)short.MaxValue).ToArray()
+            Samples = buffer.Samples.Select(x => x / (float)short.MaxValue).ToArray(),
+            SampleRate = buffer.SampleRate
         };
     }
 
     public SoundBuffer MakeBuffer()
     {
-        return new SoundBuffer(Samples.Select(x => (short)(x * short.MaxValue)).ToArray(), Channels, 44100); 
+        return new SoundBuffer(Samples.Select(x => (short)(x * short.MaxValue)).ToArray(), Channels, SampleRate); 
     }
 }

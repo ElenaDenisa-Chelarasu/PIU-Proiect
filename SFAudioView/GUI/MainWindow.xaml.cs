@@ -17,20 +17,44 @@ using System.IO;
 using Microsoft.Win32;
 using SFML.Audio;
 using SFAudioCore.DataTypes;
+using System.ComponentModel;
 
-namespace SFAudio;
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
-public partial class MainWindow : Window
+namespace SFAudio;
+public partial class MainWindow : Window, INotifyPropertyChanged
 {
-    private AudioProject? _project;
+    public AudioEngine Engine { get; } = new();
+
+    public string TimeCursorText => Engine.TimeCursor.ToString("hh\\:mm\\:ss\\.fff");
+    public string ProjectLengthText => Engine.ProjectLength.ToString("hh\\:mm\\:ss\\.fff");
 
     public MainWindow()
     {
         InitializeComponent();
         DataContext = this;
+
+        Engine.PlaybackChanged += OnPlaybackChanged;
+        Engine.EngineTick += OnEngineTick;
+
+        OnPlaybackChanged(this, new AudioEngine.PlaybackChangedArgs()
+        {
+            Looping = false,
+            Playing = false,
+            TimeCursor = TimeSpan.Zero
+        });
     }
+
+    private void OnEngineTick(object? sender, EventArgs e)
+    {
+        // TODO: rewrite this crap
+
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TimeCursorText)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProjectLengthText)));
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     private void HelloWorldButton_Click(object sender, RoutedEventArgs e)
     {
@@ -42,7 +66,7 @@ public partial class MainWindow : Window
     /// TO DO: Sa nu se randeze implicit, ci doar sa deschida si sa salveze acest state, 
     /// pentru a pute fi folosit in randarea unei imagini Waveform
     /// </summary>
-    private void openMenuItem_Click(object sender, RoutedEventArgs e)
+    private void OpenMenuItem_Click(object sender, RoutedEventArgs e)
     {
         var open = new OpenFileDialog
         {
@@ -52,32 +76,70 @@ public partial class MainWindow : Window
         if (open.ShowDialog() != true)
             return;
 
-        _project?.Dispose();
-        _project = new AudioProject(new[] { Audio.LoadFromFile(open.FileName) });
+        Engine.Playing = false;
+        Engine.TimeCursor = TimeSpan.Zero;
+
+        Engine.UpdateSamples(new[]
+        {
+            new AudioSample(Audio.LoadFromFile(open.FileName), TimeSpan.Zero),
+            new AudioSample(Audio.LoadFromFile(open.FileName), TimeSpan.FromSeconds(10))
+        });
     }
 
     public void PlayButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_project != null)
+        if (Engine != null)
         {
-            _project.Playing = true;
+            Engine.Playing = true;
         }
     }
 
     public void PauseButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_project != null)
+        if (Engine != null)
         {
-            _project.Playing = false;
+            Engine.Playing = false;
         }
     }
 
     private void StopButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_project != null)
+        if (Engine != null)
         {
-            _project.Playing = false;
-            _project.TimeCursor = TimeSpan.Zero;
+            Engine.Playing = false;
+            Engine.TimeCursor = TimeSpan.Zero;
         }
+    }
+
+    private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+    {
+        Engine?.Dispose();
+    }
+
+    private void OnPlaybackChanged(object? sender, AudioEngine.PlaybackChangedArgs e)
+    {
+        /*
+        if (_project.SampleCount != 0)
+        {
+            if (_project.Playing)
+            {
+                StopButton.IsEnabled = true;
+                PauseButton.IsEnabled = true;
+                PlayButton.IsEnabled = false;
+            }
+            else
+            {
+                StopButton.IsEnabled = false;
+                PauseButton.IsEnabled = false;
+                PlayButton.IsEnabled = true;
+            }
+        }
+        else
+        {
+            PauseButton.IsEnabled = false;
+            StopButton.IsEnabled = false;
+            PlayButton.IsEnabled = false;
+        }
+        */
     }
 }
