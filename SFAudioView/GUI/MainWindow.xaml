@@ -20,7 +20,7 @@
         <Menu DockPanel.Dock="Top">
             <MenuItem x:Name="fileMenuItem" Header="File">
                 <MenuItem x:Name="newMenuItem" Header="New" InputGestureText="Ctrl+N"/>
-                <MenuItem x:Name="openMenuItem" Header="Open" Click="openMenuItem_Click" InputGestureText="Ctrl+O"/>
+                <MenuItem x:Name="openMenuItem" Header="Open" Click="OpenMenuItem_Click" InputGestureText="Ctrl+O"/>
                 <MenuItem x:Name="saveMenuItem" Header="Save" InputGestureText="Ctrl+S"/>
                 <MenuItem x:Name="saveAsMenuItem" Header="Save as" InputGestureText="Ctrl+Shift+S"/>
                 <MenuItem x:Name="exportMenuItem" Header="Export"/>
