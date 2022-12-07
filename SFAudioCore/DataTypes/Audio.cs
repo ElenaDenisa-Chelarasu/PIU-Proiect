@@ -9,28 +9,39 @@ namespace SFAudioCore.DataTypes;
 
 public class Audio
 {
-    public uint Channels { get; set; } = 1;
+    public uint Channels { get; private set; } = 1;
 
-    public float[] Samples { get; set; } = Array.Empty<float>();
+    /// <summary>
+    /// Values for all of the samples in the audio.
+    /// </summary>
+    public float[] Data { get; private set; } = Array.Empty<float>();
 
-    public uint SampleRate { get; set; } = 44100;
+    public uint SampleCount => (uint)(Data.Length / Channels);
 
-    public TimeSpan Duration => TimeSpan.FromSeconds(Samples.Length / (float)SampleRate / Channels);
+    public uint SampleRate { get; private set; } = 44100;
+
+    public TimeSpan Duration => TimeSpan.FromSeconds(SampleCount / (float)SampleRate);
 
     public static Audio LoadFromFile(string fileName)
     {
         var buffer = new SoundBuffer(fileName);
+        var data = new float[buffer.Samples.Length];
+
+        AudioConvert.Convert16ToFloat(buffer.Samples, data);
 
         return new Audio
         {
             Channels = buffer.ChannelCount,
-            Samples = buffer.Samples.Select(x => x / (float)short.MaxValue).ToArray(),
+            Data = data,
             SampleRate = buffer.SampleRate
         };
     }
 
     public SoundBuffer MakeBuffer()
     {
-        return new SoundBuffer(Samples.Select(x => (short)(x * short.MaxValue)).ToArray(), Channels, SampleRate); 
+        short[] data = new short[Data.Length];
+        AudioConvert.ConvertFloatTo16(Data, data);
+
+        return new SoundBuffer(data, Channels, SampleRate); 
     }
 }

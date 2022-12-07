@@ -8,237 +8,220 @@ using System.Threading.Tasks;
 
 namespace SFAudioCore.DataTypes;
 
-public class AudioEngine : IDisposable
+// A sample can be composed of multiple values
+
+public class AudioEngine
 {
-    private readonly Thread _runner;
-    private bool _active = true;
-    private readonly object _lock = new();
-    private readonly List<AudioSample> _samples = new();
-    private readonly Dictionary<AudioSample, Sound> _players = new();
+    private readonly AudioStream _stream;
+    private readonly List<AudioInstance> _audio = new();
 
     public AudioEngine()
     {
-        _runner = new Thread(ThreadLoop);
-        _runner.Start();
+        _stream = new AudioStream(this);
     }
 
-    private TimeSpan _timeCursor = TimeSpan.Zero;
-    public TimeSpan TimeCursor
+    public TimeSpan Duration => TimeSpan.FromSeconds(SampleCount / (float)SampleRate);
+    public uint SampleCount { get; private set; }
+
+    public uint SampleRate => _stream.SampleRate;
+
+    public bool Loop
     {
-        get => _timeCursor;
-        set => SetupPlayback(timeCursor: value);
+        get => _stream.Loop;
+        set => _stream.Loop = value;
     }
 
-    private bool _playing = false;
-    public bool Playing
+    public void Play() => _stream.Play();
+    public void Pause() => _stream.Pause();
+    public void Stop() => _stream.Stop();
+
+    public TimeSpan TimePosition
     {
-        get => _playing;
-        set => SetupPlayback(playing: value);
-    }
-
-    private bool _looping = false;
-    public bool Looping
-    {
-        get => _looping;
-        set => SetupPlayback(looping: value);
-    }
-
-    public int SampleCount => _samples.Count;
-
-    public TimeSpan ProjectLength { get; internal set; }
-
-    private void ThreadLoop()
-    {
-        var clock = new Clock();
-
-        while (_active)
+        get => TimeSpan.FromSeconds(_stream.SamplePosition / (float)SampleRate);
+        set
         {
-            Time elapsed = clock.Restart();
-            Thread.Sleep(1);
+            if (value < TimeSpan.Zero)
+                value = TimeSpan.Zero;
 
-            UpdatePlayers();
+            if (value >= Duration)
+                value = Duration;
 
-            if (_playing)
+            _stream.PlayingOffset = Time.FromSeconds((float)value.TotalSeconds);
+        }
+    }
+
+    public void SetAudio(IEnumerable<AudioInstance> samples)
+    {
+        if (_stream.Status == SoundStatus.Playing)
+            throw new InvalidOperationException("Cannot update samples while playing.");
+
+        if (samples.Any(x => x.Source.Channels > 2 || x.Source.SampleRate != SampleRate))
+            throw new InvalidOperationException("Unsupported audio.");
+
+        lock (_audio)
+        {
+            _audio.Clear();
+            _audio.AddRange(samples);
+
+            SampleCount = _audio.Select(x => x.SampleStart + x.Source.SampleCount).Max();
+        }
+
+        StateUpdated?.Invoke(this, EventArgs.Empty);
+    }
+
+    public event EventHandler? StateUpdated;
+
+    private class AudioStream : SoundStream
+    {
+        private const uint Channels = 2;
+        private const uint BufferSampleSize = 512;
+
+        private readonly AudioEngine _engine;
+        private float[]? _floatData;
+
+        private uint _samplePosition;
+        public uint SamplePosition
+        {
+            get => _samplePosition;
+            set
             {
-                lock (_lock)
+                if (value > _engine.SampleCount)
+                    value = _engine.SampleCount;
+
+                _samplePosition = value;
+
+                PlayingOffset = Time.FromSeconds(SamplePosition / (float)SampleRate);
+            }
+        }
+
+        public AudioStream(AudioEngine engine)
+        {
+            _engine = engine;
+            Initialize(2, 44100);
+            RelativeToListener = true;  // Disable effect of SoundListener
+        }
+
+        protected override bool OnGetData(out short[] data)
+        {
+            if (SamplePosition >= _engine.SampleCount)
+            {
+                data = Array.Empty<short>();
+                return false;
+            }
+
+            uint playingOffset = SamplePosition;
+            uint samples = Math.Min(BufferSampleSize, _engine.SampleCount - playingOffset);
+
+            data = new short[samples * Channels];
+
+            if (_floatData == null || _floatData.Length != data.Length)
+            {
+                // Recreate buffer since it isn't compatible with current samples desired
+                _floatData = new float[data.Length];
+            }
+            else
+            {
+                // Zero out buffer for reuse
+                Array.Fill(_floatData, 0f);
+            }
+
+            uint fillStart = playingOffset * Channels;
+            uint fillEnd = (playingOffset + samples) * Channels;
+
+            // Mix some shit
+            foreach (var audio in _engine._audio)
+            {
+                // We can only mix in samples that are shared by both intervals
+
+                uint audioStart = audio.SampleStart * Channels;
+                uint audioEnd = (audio.SampleStart + audio.Source.SampleCount) * Channels;
+
+                uint mixStart = Math.Max(fillStart, audioStart);
+                uint mixEnd = Math.Min(fillEnd, audioEnd);
+
+                if (mixStart >= mixEnd)
                 {
-                    _timeCursor += TimeSpan.FromSeconds(elapsed.AsSeconds());
-                    if (_timeCursor >= ProjectLength)
+                    // This audio doesn't play in this interval
+                    continue;
+                }
+
+                uint trueFillStart = mixStart - fillStart;
+                uint trueAudioStart = mixStart - audioStart;
+                uint dataCount = mixEnd - mixStart;
+
+                float globalVolumeMod = Math.Clamp(audio.Volume, 0f, 1f);
+
+                // Stereo mixing
+                if (audio.Source.Channels == 2)
+                {
+                    // There are two values for each sample
+                    // -1f = full left, 1f = full right
+                    float leftVolumeMod = Math.Clamp(-(audio.Panning - 1f), 0f, 1f) * globalVolumeMod;
+                    float rightVolumeMod = Math.Clamp(audio.Panning + 1f, 0f, 1f) * globalVolumeMod;
+
+                    unsafe
                     {
-                        if (_looping)
+                        fixed (float* fPtr = &_floatData[trueFillStart])
                         {
-                            SetupPlayback(playing: false, timeCursor: TimeSpan.Zero);
+                            fixed (float* aPtr = &audio.Source.Data[trueAudioStart])
+                            {
+                                int dataIndex = 0;
+                                while (dataIndex < dataCount)
+                                {
+                                    *(fPtr + dataIndex) += *(aPtr + dataIndex) * leftVolumeMod;
+                                    *(fPtr + dataIndex + 1) += *(aPtr + dataIndex + 1) * rightVolumeMod;
+                                    dataIndex += 2;
+                                }
+                            }
                         }
-                        else
+                    }
+                }
+
+                // Mono mixing - duplicate samples to simualte stereo
+                else if (audio.Source.Channels == 1)
+                {
+                    // There is one value for each sample which we must duplicate
+                    // Advance half as fast on audio source
+
+                    unsafe
+                    {
+                        fixed (float* fPtr = &_floatData[trueFillStart])
                         {
-                            _timeCursor -= ProjectLength;
+                            fixed (float* aPtr = &audio.Source.Data[trueAudioStart / 2])
+                            {
+                                int dataIndex = 0;
+                                int sampleIndex = 0;
+                                while (dataIndex < dataCount)
+                                {
+                                    float value = *(aPtr + sampleIndex) * globalVolumeMod;
+
+                                    *(fPtr + dataIndex) += value;
+                                    *(fPtr + dataIndex) += value;
+
+                                    dataIndex += 2;
+                                    sampleIndex += 1;
+                                }
+                            }
                         }
                     }
                 }
             }
 
-            EngineTick?.Invoke(this, EventArgs.Empty);
+            // Convert float samples back into short samples
+
+            AudioConvert.ConvertFloatTo16(_floatData, data);
+
+            _samplePosition += samples;
+            _engine.StateUpdated?.Invoke(this, EventArgs.Empty);
+
+            return true;
+        }
+
+        protected override void OnSeek(Time timeOffset)
+        {
+            _samplePosition = (uint)Math.Round(timeOffset.AsSeconds() * SampleRate);
+            _engine.StateUpdated?.Invoke(this, EventArgs.Empty);
         }
     }
 
-    public void UpdateSamples(IEnumerable<AudioSample> samples)
-    {
-        lock (_lock)
-        {
-            _samples.Clear();
-            _samples.AddRange(samples);
-
-            foreach ((var _, var sample) in _players)
-            {
-                sample.Stop();
-                sample.Dispose();
-            }
-
-            _players.Clear();
-
-            TimeSpan projectLength = TimeSpan.Zero;
-
-            foreach (var sample in _samples)
-            {
-                var duration = sample.Start + sample.Source.Duration;
-
-                if (projectLength < duration)
-                    projectLength = duration;
-            }
-
-            ProjectLength = projectLength;
-        }
-    }
-
-    private void UpdatePlayers()
-    {
-        lock (_lock)
-        {
-            if (!_playing)
-            {
-                foreach ((var _, var sound) in _players)
-                {
-                    sound.Stop();
-                    sound.Dispose();
-                }
-
-                _players.Clear();
-                return;
-            }
-
-            var shouldBePlaying = _samples.Where(x => x.Start <= TimeCursor && TimeCursor <= x.Start + x.Source.Duration).ToList();
-
-            var shouldRemove = _players.Keys.Where(x => !shouldBePlaying.Contains(x)).ToList();
-            var shouldAdd = shouldBePlaying.Where(x => !_players.ContainsKey(x)).ToList();
-
-            foreach (var sample in shouldRemove)
-            {
-                _players[sample].Stop();
-                _players[sample].Dispose();
-                _players.Remove(sample);
-            }
-
-            foreach (var sample in shouldAdd)
-            {
-                _players[sample] = new Sound(sample.Source.MakeBuffer())
-                {
-                    PlayingOffset = Time.FromSeconds((float)(_timeCursor - sample.Start).TotalSeconds),
-                    Loop = false  // No point in looping fragments of a track
-                };
-
-                _players[sample].Play();
-            }
-
-            // Check for desync
-            foreach ((var sample, var sound) in _players)
-            {
-                TimeSpan playingOffset = TimeSpan.FromSeconds(sound.PlayingOffset.AsSeconds());
-
-                var delta = TimeCursor - (playingOffset + sample.Start);
-
-                if (delta >= TimeSpan.FromMilliseconds(1))
-                {
-                    // Update positions
-                    sound.PlayingOffset = Time.FromSeconds((float)(TimeCursor - sample.Start).TotalSeconds);
-                }
-            }
-        }
-    }
-
-    private void SetupPlayback(
-        bool? playing = null,
-        bool? looping = null,
-        TimeSpan? timeCursor = null
-        )
-    {
-        lock (_lock)
-        {
-            _playing = playing.GetValueOrDefault(_playing);
-            _looping = looping.GetValueOrDefault(_looping);
-            _timeCursor = timeCursor.GetValueOrDefault(_timeCursor);
-
-            if (_playing)
-            {
-                foreach ((var _, var sound) in _players)
-                {
-                    if (sound.Status != SoundStatus.Playing)
-                        sound.Play();
-                }
-            }
-            else
-            {
-                foreach ((var _, var sound) in _players)
-                {
-                    if (sound.Status != SoundStatus.Paused)
-                        sound.Pause();
-                }
-            }
-        }
-
-        PlaybackChanged?.Invoke(this, new PlaybackChangedArgs()
-        {
-            Looping = _looping,
-            Playing = _playing,
-            TimeCursor = _timeCursor
-        });
-    }
-
-    public class PlaybackChangedArgs
-    {
-        public bool Playing { get; set; }
-        public bool Looping { get; set; }
-        public TimeSpan TimeCursor { get; set; }
-    }
-
-    public event EventHandler<PlaybackChangedArgs>? PlaybackChanged;
-
-    public event EventHandler? EngineTick;
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (_active)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects)
-            }
-
-            // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-            // TODO: set large fields to null
-            _active = false;
-        }
-    }
-
-    ~AudioEngine()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: false);
-    }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
 }
