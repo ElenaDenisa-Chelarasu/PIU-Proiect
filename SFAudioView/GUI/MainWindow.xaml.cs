@@ -142,4 +142,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
         */
     }
+
+    private void AudioTrack_Loaded()
+    {
+
+    }
 }

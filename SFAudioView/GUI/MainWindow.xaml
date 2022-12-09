@@ -74,7 +74,7 @@
             </StatusBarItem>
         </StatusBar>
         <StackPanel>
-            <StackPanel Background="White" Orientation="Horizontal" Width="300" Height="45" HorizontalAlignment="Left">
+            <StackPanel x:Name="MainBar" Background="White" Orientation="Horizontal" Width="300" Height="45" HorizontalAlignment="Left">
                 <StackPanel Height="45" Orientation="Horizontal">
                     <Button x:Name="PlayButton" Click="PlayButton_Click">
                         <Image Source="{StaticResource PlayButton}"/>
@@ -102,7 +102,7 @@
                 <TextBlock Name="TotalTime" Text="{Binding ProjectLengthText, Mode=OneWay}"/>
             </StackPanel>
             <StackPanel>
-                <g:AudioTrack>
+                <g:AudioTrack Loaded="AudioTrack_Loaded">
 
                 </g:AudioTrack>
                 <g:AudioTrack>
