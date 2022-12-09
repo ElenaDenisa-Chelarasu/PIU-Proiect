@@ -21,6 +21,7 @@ using System.ComponentModel;
 using Path = System.IO.Path;
 using System.Diagnostics;
 using SFML.System;
+using SFAudioView.GUI;
 
 namespace SFAudio;
 
@@ -69,6 +70,8 @@ public partial class MainWindow : Window
 {
     public MainWindowVM ViewModel { get; } = new();
 
+    public List<AudioTrack> AudioTracks { get; } = new(); 
+
     public MainWindow()
     {
         InitializeComponent();
@@ -97,17 +100,57 @@ public partial class MainWindow : Window
 
         ViewModel.Engine.Stop();
 
-        var first = new AudioInstance(Audio.LoadFromFile(open.FileName), TimeSpan.Zero);
-        var second = new AudioInstance(Audio.LoadFromFile(Path.GetDirectoryName(open.FileName) + "/shadows.ogg"), TimeSpan.FromSeconds(5));
-
-        first.Panning = -1;
-        second.Panning = 1;
+        var audio = new AudioInstance(Audio.LoadFromFile(open.FileName), TimeSpan.Zero);
 
         ViewModel.Engine.SetAudio(new[]
         {
-            first,
-            second
+            audio
         });
+
+        AudioTracks.Clear();
+        AudioTracks.Add(new AudioTrack()
+        {
+            ViewModel =
+            {
+                TrackName = Path.GetFileName(open.FileName)
+            }
+        });
+
+        var track = AudioTracks.Last();
+
+        if (audio.Source.Channels == 2)
+        {
+            var waves = new List<WaveformLogic>()
+            {
+                new WaveformLogic() { BorderBrush = Brushes.Black, BorderThickness = new Thickness(1), Height = 25 },
+                new WaveformLogic() { BorderBrush = Brushes.Black, BorderThickness = new Thickness(1), Height = 25 }
+            };
+
+            for (int i = 0; i < audio.Source.Data.Length; i += 2)
+            {
+                waves[0].AddValue(audio.Source.Data[i], -audio.Source.Data[i]);
+                waves[1].AddValue(audio.Source.Data[i + 1], -audio.Source.Data[i + 1]);
+            }
+
+            track.WaveformItems.ItemsSource = waves;
+        }
+
+        else
+        {
+            var waves = new List<WaveformLogic>()
+            {
+                new WaveformLogic() { BorderBrush = Brushes.Black, BorderThickness = new Thickness(1) }
+            };
+
+            for (int i = 0; i < audio.Source.Data.Length; i++)
+            {
+                waves[0].AddValue(audio.Source.Data[i], audio.Source.Data[i]);
+            }
+
+            track.WaveformItems.ItemsSource = waves;
+        }
+
+        AudioTrackItems.ItemsSource = AudioTracks;
     }
 
     public void PlayButton_Click(object sender, RoutedEventArgs e)

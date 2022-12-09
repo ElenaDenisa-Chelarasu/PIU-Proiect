@@ -12,7 +12,7 @@ namespace SFAudioView.GUI
     /// </summary>
     public partial class WaveformLogic : UserControl
     {
-        public DependencyProperty SampleAggregatorProperty = DependencyProperty.Register("SampleAggregator", 
+        public static readonly DependencyProperty SampleAggregatorProperty = DependencyProperty.Register("SampleAggregator", 
                                                                                         typeof(SampleAggregator),
                                                                                         typeof(WaveformLogic),
                                                                                         new PropertyMetadata(null, OnSampleAggregatorChanged));

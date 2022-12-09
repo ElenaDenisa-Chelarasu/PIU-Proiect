@@ -151,13 +151,14 @@ public class AudioEngine
 
                 float globalVolumeMod = Math.Clamp(audio.Volume, 0f, 1f);
 
+                float leftVolumeMod = Math.Clamp(-(audio.Panning - 1f), 0f, 1f) * globalVolumeMod;
+                float rightVolumeMod = Math.Clamp(audio.Panning + 1f, 0f, 1f) * globalVolumeMod;
+
                 // Stereo mixing
                 if (audio.Source.Channels == 2)
                 {
                     // There are two values for each sample
                     // -1f = full left, 1f = full right
-                    float leftVolumeMod = Math.Clamp(-(audio.Panning - 1f), 0f, 1f) * globalVolumeMod;
-                    float rightVolumeMod = Math.Clamp(audio.Panning + 1f, 0f, 1f) * globalVolumeMod;
 
                     unsafe
                     {
@@ -193,10 +194,10 @@ public class AudioEngine
                                 int sampleIndex = 0;
                                 while (dataIndex < dataCount)
                                 {
-                                    float value = *(aPtr + sampleIndex) * globalVolumeMod;
+                                    float value = *(aPtr + sampleIndex);
 
-                                    *(fPtr + dataIndex) += value;
-                                    *(fPtr + dataIndex) += value;
+                                    *(fPtr + dataIndex) += value * leftVolumeMod;
+                                    *(fPtr + dataIndex) += value * rightVolumeMod;
 
                                     dataIndex += 2;
                                     sampleIndex += 1;

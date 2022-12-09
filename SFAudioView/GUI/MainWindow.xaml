@@ -112,18 +112,13 @@
                 <TextBlock Text=" | "/>
                 <TextBlock Name="LoopingTextBlock" Text="{Binding LoopingText, Mode=OneWay}"/>
             </StackPanel>
-            <StackPanel>
-                <g:AudioTrack>
-
-                </g:AudioTrack>
-                <g:AudioTrack>
-
-                </g:AudioTrack>
-            </StackPanel>
-            <StackPanel>
-                <g:WaveformLogic Margin="5" Height="50" SampleAggregator="{Binding SampleAggregator}"/>
-            </StackPanel>
-            
+            <ItemsControl Name="AudioTrackItems">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <g:AudioTrack/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </StackPanel>
     </DockPanel>
 </Window>

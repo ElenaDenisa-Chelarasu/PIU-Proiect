@@ -3,9 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:SFAudioView.GUI"
+             xmlns:g="clr-namespace:SFAudioView.GUI"
              mc:Ignorable="d">
 
+    <UserControl.DataContext>
+        <g:AudioTrackVM/>
+    </UserControl.DataContext>
+    
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -14,27 +18,31 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <StackPanel Background="White" Orientation="Horizontal">
+    <StackPanel Background="White" Orientation="Horizontal" Margin="10">
         <StackPanel MinWidth="180">
             <DockPanel HorizontalAlignment="Stretch">
                 <Button>
                     <Image Height="25" Source="{StaticResource DropDownButton}"></Image>
                 </Button>
-                <TextBox FontSize="25">wind01</TextBox>
+                <TextBlock FontSize="25" Text="{Binding TrackName}"/>
             </DockPanel>
             <DockPanel HorizontalAlignment="Stretch" >
-                <TextBox Width="60" DockPanel.Dock="Left">Left:</TextBox>
-                <TextBox Width="50">50%</TextBox>
+                <TextBlock Width="60" DockPanel.Dock="Left">Left:</TextBlock>
+                <TextBlock Width="50">50%</TextBlock>
                 <Button DockPanel.Dock="Right">Mute</Button>
             </DockPanel>
             <DockPanel HorizontalAlignment="Stretch">
-                <TextBox Width="60">Right:</TextBox>
-                <TextBox Width="50">50%</TextBox>
+                <TextBlock Width="60">Right:</TextBlock>
+                <TextBlock Width="50">50%</TextBlock>
                 <Button DockPanel.Dock="Right">Mute</Button>
             </DockPanel>
         </StackPanel>
-        <DockPanel MinWidth="200">
-            <!-- TODO Add audio track control -->
-        </DockPanel>
+        <ItemsControl Name="WaveformItems" MinWidth="200">
+            <!--<ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <g:WaveformLogic Margin="5" Height="50" BorderBrush="Black" BorderThickness="1"/>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>-->
+        </ItemsControl>
     </StackPanel>
 </UserControl>
