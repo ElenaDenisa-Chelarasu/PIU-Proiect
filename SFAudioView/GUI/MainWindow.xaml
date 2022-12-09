@@ -119,6 +119,10 @@
 
                 </g:AudioTrack>
             </StackPanel>
+            <StackPanel>
+                <g:WaveformLogic Margin="5" Height="50" SampleAggregator="{Binding SampleAggregator}"/>
+            </StackPanel>
+            
         </StackPanel>
     </DockPanel>
 </Window>
