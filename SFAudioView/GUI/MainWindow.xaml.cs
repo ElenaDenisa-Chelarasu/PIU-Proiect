@@ -20,6 +20,7 @@ using SFAudioCore.DataTypes;
 using System.ComponentModel;
 using Path = System.IO.Path;
 using System.Diagnostics;
+using SFML.System;
 
 namespace SFAudio;
 
@@ -29,12 +30,10 @@ public class MainWindowVM : INotifyPropertyChanged
     {
         void OnEngineTick(object? sender, EventArgs e)
         {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(nameof(TimeCursorText)));
-                PropertyChanged(this, new PropertyChangedEventArgs(nameof(DurationText)));
-                PropertyChanged(this, new PropertyChangedEventArgs(nameof(LoopingText)));
-            }
+            NotifyChanged(nameof(SampleRateText));
+            NotifyChanged(nameof(TimeCursorText));
+            NotifyChanged(nameof(DurationText));
+            NotifyChanged(nameof(LoopingText));
         }
 
         Engine.StateUpdated += OnEngineTick;
@@ -42,42 +41,23 @@ public class MainWindowVM : INotifyPropertyChanged
 
     public AudioEngine Engine { get; } = new();
 
-    private bool _shiftKeyHeld;
-    public bool ShiftKeyHeld
+    private string _actionDescriptionText = "";
+    public string ActionDescriptionText
     {
-        get => _shiftKeyHeld;
+        get => _actionDescriptionText;
         set
         {
-            _shiftKeyHeld = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ShiftKeyHeld)));
+            _actionDescriptionText = value;
+            NotifyChanged(nameof(ActionDescriptionText));
         }
     }
 
-    private bool _altKeyHeld;
-    public bool AltKeyHeld
-    {
-        get => _altKeyHeld;
-        set
-        {
-            _altKeyHeld = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AltKeyHeld)));
-        }
-    }
-
-    private bool _ctrlKeyHeld;
-    public bool CtrlKeyHeld
-    {
-        get => _ctrlKeyHeld;
-        set
-        {
-            _ctrlKeyHeld = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CtrlKeyHeld)));
-        }
-    }
-
+    public string SampleRateText => Engine.SampleRate + " Hz";
     public string TimeCursorText => Engine.TimePosition.ToString("hh\\:mm\\:ss\\.fff");
     public string DurationText => Engine.Duration.ToString("hh\\:mm\\:ss\\.fff");
-    public string LoopingText => Engine.Loop ? "Looping enabled." : "Looping disabled";
+    public string LoopingText => Engine.Loop ? "Looping On." : "Looping Off.";
+
+    private void NotifyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
     public event PropertyChangedEventHandler? PropertyChanged;
 }
@@ -164,52 +144,71 @@ public partial class MainWindow : Window
         ViewModel.Engine.Loop = !ViewModel.Engine.Loop;
     }
 
-    private void Window_KeyDown(object sender, KeyEventArgs e)
-    {
-        if (e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Shift))
-            ViewModel.ShiftKeyHeld = true;
-
-        if (e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Alt))
-            ViewModel.AltKeyHeld = true;
-
-        if (e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Control))
-            ViewModel.CtrlKeyHeld = true;
-
-        Debug.WriteLine("Update2");
-    }
-
-    private void Window_KeyUp(object sender, KeyEventArgs e)
-    {
-        if (e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Shift))
-            ViewModel.ShiftKeyHeld = false;
-
-        if (e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Alt))
-            ViewModel.AltKeyHeld = false;
-
-        if (e.KeyboardDevice.Modifiers.HasFlag(ModifierKeys.Control))
-            ViewModel.CtrlKeyHeld = false;
-
-        Debug.WriteLine("Update");
-    }
-
-    private void Window_LostFocus(object sender, RoutedEventArgs e)
-    {
-        ViewModel.ShiftKeyHeld = false;
-        ViewModel.AltKeyHeld = false;
-        ViewModel.CtrlKeyHeld = false;
-    }
-
     private TimeSpan GetSkipTimeAmount()
     {
         TimeSpan baseTime = TimeSpan.FromSeconds(5);
 
-        return (ViewModel.CtrlKeyHeld, ViewModel.ShiftKeyHeld, ViewModel.AltKeyHeld) switch
+        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+            return baseTime * 60;
+
+        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+            return baseTime * 12;
+
+        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
+            return baseTime * 2;
+
+        return baseTime;
+    }
+
+    private void Window_OnKeyDown(object sender, KeyEventArgs e)
+    {
+        ProcessDescriptionUpdate();
+    }
+
+    private void Window_OnKeyUp(object sender, KeyEventArgs e)
+    {
+        ProcessDescriptionUpdate();
+    }
+
+    private void GenericDescription_MouseOver(object sender, MouseEventArgs e)
+    {
+        ProcessDescriptionUpdate();
+    }
+
+    private void ProcessDescriptionUpdate()
+    {
+        Dictionary<Control, string> templates = new()
         {
-            (true, _, _) => baseTime * 60,
-            (_, true, _) => baseTime * 12,
-            (_, _, true) => baseTime * 2,
-            _ => baseTime
+            [PlayButton] = "Start or resume audio playback.",
+            [PauseButton] = "Pause audio playback.",
+            [StopButton] = "Stop audio playback and go back to start.",
+            [SkipLeftButton] = "({Modifier}) Skip {TimeSkip} backward.",
+            [SkipRightButton] = "({Modifier}) Skip {TimeSkip} forward.",
+            [LoopButton] = "Enable or disable looping."
         };
 
+        var mouseOver = templates.Keys.FirstOrDefault(x => x.IsMouseOver);
+
+        if (mouseOver == null || !templates.TryGetValue(mouseOver, out string? text))
+            text = "";
+
+        else
+        {
+            string modifier = " - ";
+
+            if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+                modifier = "Ctrl";
+
+            else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+                modifier = "Shift";
+
+            else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))
+                modifier = "Alt";
+
+            text = text.Replace("{Modifier}", modifier);
+            text = text.Replace("{TimeSkip}", GetSkipTimeAmount().ToString());
+        }
+
+        ViewModel.ActionDescriptionText = text;
     }
 }

@@ -6,12 +6,17 @@
         xmlns:local="clr-namespace:SFAudio"
         xmlns:g="clr-namespace:SFAudioView.GUI"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" Closing="Window_Closing" KeyDown="Window_KeyDown" KeyUp="Window_KeyUp" LostFocus="Window_LostFocus">
+        Title="MainWindow"
+        Height="450"
+        Width="800"
+        Closing="Window_Closing"
+        KeyDown="Window_OnKeyDown"
+        KeyUp="Window_OnKeyUp">
 
     <Window.DataContext>
         <local:MainWindowVM/>
     </Window.DataContext>
-    
+
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -60,41 +65,41 @@
             </MenuItem>
         </Menu>
         <StatusBar DockPanel.Dock="Bottom">
-            <StatusBarItem>
-                <TextBlock> Playing...</TextBlock>
+            <StatusBarItem MinWidth="100">
+                <TextBlock Name="PlaybackStatusText" Text="{Binding LoopingText}"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem MinWidth="250">
+                <TextBlock Name="ActionDescription" Text="{Binding ActionDescriptionText}"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem MinWidth="70">
+                <TextBlock Name="SampleRateText" Text="{Binding SampleRateText}"/>
             </StatusBarItem>
             <Separator/>
             <StatusBarItem>
-                <TextBlock> Skip (LMB) - Jump 5 seconds ahead</TextBlock>
-            </StatusBarItem>
-            <Separator/>
-            <StatusBarItem>
-                <TextBlock> 44100 Hz</TextBlock>
-            </StatusBarItem>
-            <Separator/>
-            <StatusBarItem>
-                <TextBlock> CPU 2% RAM 1238 MB</TextBlock>
+                <TextBlock Text="[PC resources]"></TextBlock>
             </StatusBarItem>
         </StatusBar>
         <StackPanel>
             <StackPanel Background="White" Orientation="Horizontal" Width="300" Height="45" HorizontalAlignment="Left">
                 <StackPanel Height="45" Orientation="Horizontal">
-                    <Button x:Name="PlayButton" Click="PlayButton_Click">
+                    <Button x:Name="PlayButton" Click="PlayButton_Click" MouseMove="GenericDescription_MouseOver">
                         <Image Source="{StaticResource PlayButton}"/>
                     </Button>
-                    <Button x:Name="PauseButton" Click="PauseButton_Click">
+                    <Button x:Name="PauseButton" Click="PauseButton_Click" MouseMove="GenericDescription_MouseOver">
                         <Image Source="{StaticResource PauseButton}"/>
                     </Button>
-                    <Button x:Name="StopButton" Click="StopButton_Click">
+                    <Button x:Name="StopButton" Click="StopButton_Click" MouseMove="GenericDescription_MouseOver">
                         <Image Source="{StaticResource StopButton}"/>
                     </Button>
-                    <Button x:Name="SkipLeftButton" Click="SkipLeftButton_Click">
+                    <Button x:Name="SkipLeftButton" Click="SkipLeftButton_Click" MouseMove="GenericDescription_MouseOver">
                         <Image Source="{StaticResource SkipLeftButton}"/>
                     </Button>
-                    <Button x:Name="SkipForwardButton" Click="SkipRightButton_Click">
+                    <Button x:Name="SkipRightButton" Click="SkipRightButton_Click" MouseMove="GenericDescription_MouseOver">
                         <Image Source="{StaticResource SkipRightButton}"/>
                     </Button>
-                    <Button x:Name="LoopButton" Click="LoopButton_Click">
+                    <Button x:Name="LoopButton" Click="LoopButton_Click" MouseMove="GenericDescription_MouseOver">
                         <Image Source="{StaticResource LoopButton}"/>
                     </Button>
                 </StackPanel>
