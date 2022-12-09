@@ -18,7 +18,7 @@
     </Window.Resources>
 
     <DockPanel>
-        <Menu DockPanel.Dock="Top">
+        <Menu x:Name="MainMenu" DockPanel.Dock="Top">
             <MenuItem x:Name="fileMenuItem" Header="File">
                 <MenuItem x:Name="newMenuItem" Header="New" InputGestureText="Ctrl+N"/>
                 <MenuItem x:Name="openMenuItem" Header="Open" Click="OpenMenuItem_Click" InputGestureText="Ctrl+O"/>
@@ -101,7 +101,7 @@
                 <TextBlock Text="/"/>
                 <TextBlock Name="TotalTime" Text="{Binding ProjectLengthText, Mode=OneWay}"/>
             </StackPanel>
-            <StackPanel>
+            <StackPanel x:Name="TracksStackPanel">
                 <g:AudioTrack Loaded="AudioTrack_Loaded">
 
                 </g:AudioTrack>
@@ -109,8 +109,8 @@
 
                 </g:AudioTrack>
             </StackPanel>
-            <StackPanel>
-                <g:WaveformLogic Margin="5" Height="50" SampleAggregator="{Binding SampleAggregator}"/>
+            <StackPanel x:Name="WaveFormStackPanel">
+                <g:WaveformLogic x:Name="WaveFormViewer" Margin="5" Height="50" SampleAggregator="{Binding SampleAggregator}"/>
             </StackPanel>
             
         </StackPanel>
