@@ -11,12 +11,13 @@
         Width="800"
         Closing="Window_Closing"
         KeyDown="Window_OnKeyDown"
-        KeyUp="Window_OnKeyUp">
+        KeyUp="Window_OnKeyUp"
+        WindowStartupLocation="CenterScreen">
 
     <Window.DataContext>
         <local:MainWindowVM/>
     </Window.DataContext>
-
+    
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
