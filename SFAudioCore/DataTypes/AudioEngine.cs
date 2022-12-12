@@ -28,7 +28,11 @@ public class AudioEngine
     public bool Loop
     {
         get => _stream.Loop;
-        set => _stream.Loop = value;
+        set
+        {
+            _stream.Loop = value;
+            StateUpdated?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     public void Play() => _stream.Play();
