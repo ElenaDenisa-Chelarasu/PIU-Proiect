@@ -254,4 +254,14 @@ public partial class MainWindow : Window
 
         ViewModel.ActionDescriptionText = text;
     }
+
+    private void aboutMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        const string copyright =
+                "Audio Pley and Mixer\r\n" +
+                "Proiectarea Interfetelor Utilizator, Proiect\r\n" +
+                "(c)2022 Chelarasu Elena-Denisa, Miron Alexandru\r\n";
+
+        MessageBox.Show(copyright, "Despre proiect");
+    }
 }
