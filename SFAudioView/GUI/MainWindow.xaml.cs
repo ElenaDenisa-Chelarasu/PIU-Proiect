@@ -100,7 +100,9 @@ public partial class MainWindow : Window
 
         ViewModel.Engine.Stop();
 
-        var audio = new AudioInstance(Audio.LoadFromFile(open.FileName), TimeSpan.Zero);
+        //var audio = new AudioInstance(Audio.LoadFromFile(open.FileName), TimeSpan.Zero);
+        var audio = new AudioInstance(Audio.WhiteNoise(2, 44100, TimeSpan.FromSeconds(20)), TimeSpan.Zero);
+
 
         ViewModel.Engine.SetAudio(new[]
         {
@@ -122,8 +124,8 @@ public partial class MainWindow : Window
         {
             var waves = new List<WaveformLogic>()
             {
-                new WaveformLogic() { BorderBrush = Brushes.Black, BorderThickness = new Thickness(1), Height = 25 },
-                new WaveformLogic() { BorderBrush = Brushes.Black, BorderThickness = new Thickness(1), Height = 25 }
+                new WaveformLogic() { BorderBrush = Brushes.Black, BorderThickness = new Thickness(1), Width=300, Height = 25 },
+                new WaveformLogic() { BorderBrush = Brushes.Black, BorderThickness = new Thickness(1), Width=300, Height = 25 }
             };
 
             for (int i = 0; i < audio.Source.Data.Length; i += 2)

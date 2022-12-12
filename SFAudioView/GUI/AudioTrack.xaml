@@ -22,9 +22,11 @@
         <StackPanel MinWidth="180">
             <DockPanel HorizontalAlignment="Stretch">
                 <Button>
-                    <Image Height="25" Source="{StaticResource DropDownButton}"></Image>
+                    <Image Source="{StaticResource DropDownButton}"></Image>
                 </Button>
-                <TextBlock FontSize="25" Text="{Binding TrackName}"/>
+                <Border BorderBrush="Black" BorderThickness="1">
+                    <TextBlock FontSize="25" Text="{Binding TrackName}"/>
+                </Border>
             </DockPanel>
             <DockPanel HorizontalAlignment="Stretch" >
                 <TextBlock Width="60" DockPanel.Dock="Left">Left:</TextBlock>
