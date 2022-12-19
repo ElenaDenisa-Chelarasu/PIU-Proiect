@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace SFAudioCore.DataTypes;
@@ -12,6 +13,9 @@ namespace SFAudioCore.DataTypes;
 
 public class AudioEngine
 {
+    private const uint Channels = 2;
+    private const uint BufferSampleSize = 512;
+
     private readonly AudioStream _stream;
     private readonly List<AudioInstance> _audio = new();
 
@@ -77,9 +81,6 @@ public class AudioEngine
 
     private class AudioStream : SoundStream
     {
-        private const uint Channels = 2;
-        private const uint BufferSampleSize = 512;
-
         private readonly AudioEngine _engine;
         private float[]? _floatData;
 
@@ -129,88 +130,7 @@ public class AudioEngine
                 Array.Fill(_floatData, 0f);
             }
 
-            uint fillStart = playingOffset * Channels;
-            uint fillEnd = (playingOffset + samples) * Channels;
-
-            // Mix some shit
-            foreach (var audio in _engine._audio)
-            {
-                // We can only mix in samples that are shared by both intervals
-
-                uint audioStart = audio.SampleStart * Channels;
-                uint audioEnd = (audio.SampleStart + audio.Source.SampleCount) * Channels;
-
-                uint mixStart = Math.Max(fillStart, audioStart);
-                uint mixEnd = Math.Min(fillEnd, audioEnd);
-
-                if (mixStart >= mixEnd)
-                {
-                    // This audio doesn't play in this interval
-                    continue;
-                }
-
-                uint trueFillStart = mixStart - fillStart;
-                uint trueAudioStart = mixStart - audioStart;
-                uint dataCount = mixEnd - mixStart;
-
-                float globalVolumeMod = Math.Clamp(audio.Volume, 0f, 1f);
-
-                float leftVolumeMod = Math.Clamp(-(audio.Panning - 1f), 0f, 1f) * globalVolumeMod;
-                float rightVolumeMod = Math.Clamp(audio.Panning + 1f, 0f, 1f) * globalVolumeMod;
-
-                // Stereo mixing
-                if (audio.Source.Channels == 2)
-                {
-                    // There are two values for each sample
-                    // -1f = full left, 1f = full right
-
-                    unsafe
-                    {
-                        fixed (float* fPtr = &_floatData[trueFillStart])
-                        {
-                            fixed (float* aPtr = &audio.Source.Data[trueAudioStart])
-                            {
-                                int dataIndex = 0;
-                                while (dataIndex < dataCount)
-                                {
-                                    *(fPtr + dataIndex) += *(aPtr + dataIndex) * leftVolumeMod;
-                                    *(fPtr + dataIndex + 1) += *(aPtr + dataIndex + 1) * rightVolumeMod;
-                                    dataIndex += 2;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Mono mixing - duplicate samples to simualte stereo
-                else if (audio.Source.Channels == 1)
-                {
-                    // There is one value for each sample which we must duplicate
-                    // Advance half as fast on audio source
-
-                    unsafe
-                    {
-                        fixed (float* fPtr = &_floatData[trueFillStart])
-                        {
-                            fixed (float* aPtr = &audio.Source.Data[trueAudioStart / 2])
-                            {
-                                int dataIndex = 0;
-                                int sampleIndex = 0;
-                                while (dataIndex < dataCount)
-                                {
-                                    float value = *(aPtr + sampleIndex);
-
-                                    *(fPtr + dataIndex) += value * leftVolumeMod;
-                                    *(fPtr + dataIndex) += value * rightVolumeMod;
-
-                                    dataIndex += 2;
-                                    sampleIndex += 1;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            _engine.RenderInto(SamplePosition, SamplePosition + samples, _floatData);
 
             // Convert float samples back into short samples
 
@@ -229,4 +149,126 @@ public class AudioEngine
         }
     }
 
+    public float[] Render(TimeSpan start, TimeSpan end)
+    {
+        uint sampleStart = (uint)(start.TotalSeconds * SampleRate);
+        uint sampleEnd = (uint)(end.TotalSeconds * SampleRate);
+
+        var data = new float[(sampleEnd - sampleStart) * Channels];
+
+        RenderInto(sampleStart, sampleEnd, data);
+
+        return data;
+    }
+
+    public void RenderInto(uint sampleStart, uint sampleEnd, float[] floatData)
+    {
+        if (floatData.Length / Channels != sampleEnd - sampleStart)
+        {
+            throw new InvalidOperationException("Badly sized float data.");
+        }
+
+        if (sampleStart >= SampleCount)
+        {
+            return;
+        }
+
+        if (sampleStart < 0 || sampleStart > sampleEnd)
+        {
+            throw new InvalidOperationException("Invalid args");
+        }
+
+        if (sampleEnd >= SampleCount)
+        {
+            sampleEnd = SampleCount;
+        }
+
+        uint playingOffset = sampleStart;
+        uint samples = sampleEnd - sampleStart;
+
+        uint fillStart = playingOffset * Channels;
+        uint fillEnd = (playingOffset + samples) * Channels;
+
+        // Mix some shit
+        foreach (var audio in _audio)
+        {
+            // We can only mix in samples that are shared by both intervals
+
+            uint audioStart = audio.SampleStart * Channels;
+            uint audioEnd = (audio.SampleStart + audio.Source.SampleCount) * Channels;
+
+            uint mixStart = Math.Max(fillStart, audioStart);
+            uint mixEnd = Math.Min(fillEnd, audioEnd);
+
+            if (mixStart >= mixEnd)
+            {
+                // This audio doesn't play in this interval
+                continue;
+            }
+
+            uint trueFillStart = mixStart - fillStart;
+            uint trueAudioStart = mixStart - audioStart;
+            uint dataCount = mixEnd - mixStart;
+
+            float globalVolumeMod = Math.Clamp(audio.Volume, 0f, 1f);
+
+            float leftVolumeMod = Math.Clamp(-(audio.Panning - 1f), 0f, 1f) * globalVolumeMod;
+            float rightVolumeMod = Math.Clamp(audio.Panning + 1f, 0f, 1f) * globalVolumeMod;
+
+            // Stereo mixing
+            if (audio.Source.Channels == 2)
+            {
+                // There are two values for each sample
+                // -1f = full left, 1f = full right
+
+                unsafe
+                {
+                    fixed (float* fPtr = &floatData[trueFillStart])
+                    {
+                        fixed (float* aPtr = &audio.Source.Data[trueAudioStart])
+                        {
+                            int dataIndex = 0;
+                            while (dataIndex < dataCount)
+                            {
+                                *(fPtr + dataIndex) += *(aPtr + dataIndex) * leftVolumeMod;
+                                *(fPtr + dataIndex + 1) += *(aPtr + dataIndex + 1) * rightVolumeMod;
+                                dataIndex += 2;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Mono mixing - duplicate samples to simualte stereo
+            else if (audio.Source.Channels == 1)
+            {
+                // There is one value for each sample which we must duplicate
+                // Advance half as fast on audio source
+
+                unsafe
+                {
+                    fixed (float* fPtr = &floatData[trueFillStart])
+                    {
+                        fixed (float* aPtr = &audio.Source.Data[trueAudioStart / 2])
+                        {
+                            int dataIndex = 0;
+                            int sampleIndex = 0;
+                            while (dataIndex < dataCount)
+                            {
+                                float value = *(aPtr + sampleIndex);
+
+                                *(fPtr + dataIndex) += value * leftVolumeMod;
+                                *(fPtr + dataIndex) += value * rightVolumeMod;
+
+                                dataIndex += 2;
+                                sampleIndex += 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return;
+    }
 }

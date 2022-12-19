@@ -100,8 +100,8 @@ public partial class MainWindow : Window
 
         ViewModel.Engine.Stop();
 
-        //var audio = new AudioInstance(Audio.LoadFromFile(open.FileName), TimeSpan.Zero);
-        var audio = new AudioInstance(Audio.WhiteNoise(2, 44100, TimeSpan.FromSeconds(20)), TimeSpan.Zero);
+        var audio = new AudioInstance(Audio.LoadFromFile(open.FileName), TimeSpan.Zero);
+        //var audio = new AudioInstance(Audio.WhiteNoise(2, 44100, TimeSpan.FromSeconds(20)), TimeSpan.Zero);
 
 
         ViewModel.Engine.SetAudio(new[]
@@ -117,40 +117,6 @@ public partial class MainWindow : Window
                 TrackName = Path.GetFileName(open.FileName)
             }
         });
-
-        var track = AudioTracks.Last();
-
-        if (audio.Source.Channels == 2)
-        {
-            var waves = new List<WaveformLogic>()
-            {
-                new WaveformLogic() { BorderBrush = Brushes.Black, BorderThickness = new Thickness(1), Width=300, Height = 25 },
-                new WaveformLogic() { BorderBrush = Brushes.Black, BorderThickness = new Thickness(1), Width=300, Height = 25 }
-            };
-
-            for (int i = 0; i < audio.Source.Data.Length; i += 2)
-            {
-                waves[0].AddValue(audio.Source.Data[i], -audio.Source.Data[i]);
-                waves[1].AddValue(audio.Source.Data[i + 1], -audio.Source.Data[i + 1]);
-            }
-
-            track.WaveformItems.ItemsSource = waves;
-        }
-
-        else
-        {
-            var waves = new List<WaveformLogic>()
-            {
-                new WaveformLogic() { BorderBrush = Brushes.Black, BorderThickness = new Thickness(1) }
-            };
-
-            for (int i = 0; i < audio.Source.Data.Length; i++)
-            {
-                waves[0].AddValue(audio.Source.Data[i], audio.Source.Data[i]);
-            }
-
-            track.WaveformItems.ItemsSource = waves;
-        }
 
         AudioTrackItems.ItemsSource = AudioTracks;
     }

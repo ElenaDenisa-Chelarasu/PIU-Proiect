@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SFAudioView.GUI"
              Foreground="Black">
-    <Canvas x:Name="mainCanvas">
-        
+    <Canvas x:Name="MainCanvas">
+        <Polygon x:Name="WaveformPolygon"></Polygon>
     </Canvas>
 </UserControl>
