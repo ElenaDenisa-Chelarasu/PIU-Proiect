@@ -257,6 +257,12 @@ public partial class MainWindow : Window
         ViewModel.ActionDescriptionText = text;
     }
 
+    private void saveMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        Path.GetFileName(open.FileName);
+        buffer.saveToFile("my_record.ogg");
+    }
+
     private void aboutMenuItem_Click(object sender, RoutedEventArgs e)
     {
         const string copyright =
