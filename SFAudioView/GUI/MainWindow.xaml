@@ -32,7 +32,7 @@
                 <MenuItem x:Name="newMenuItem" Header="New" InputGestureText="Ctrl+N"/>
                 <MenuItem x:Name="openMenuItem" Header="Open" Click="OpenMenuItem_Click" InputGestureText="Ctrl+O"/>
                 <MenuItem x:Name="saveMenuItem" Header="Save" InputGestureText="Ctrl+S" Click="saveMenuItem_Click"/>
-                <MenuItem x:Name="saveAsMenuItem" Header="Save as" InputGestureText="Ctrl+Shift+S"/>
+                <MenuItem x:Name="saveAsMenuItem" Header="Save as" InputGestureText="Ctrl+Shift+S" Click="saveAsMenuItem_Click"/>
                 <MenuItem x:Name="exportMenuItem" Header="Export"/>
                 <!-- TODO Add more things -->
             </MenuItem>

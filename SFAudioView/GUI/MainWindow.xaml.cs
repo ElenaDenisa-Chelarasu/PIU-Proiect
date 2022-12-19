@@ -225,8 +225,22 @@ public partial class MainWindow : Window
 
     private void saveMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        Path.GetFileName(open.FileName);
-        buffer.saveToFile("my_record.ogg");
+        var temp_samples = ViewModel.Engine.Render(TimeSpan.Zero, ViewModel.Engine.Duration);
+        var samples = new short[temp_samples.Length];
+        AudioConvert.ConvertFloatTo16(temp_samples, samples);
+        var buffer = new SoundBuffer(samples, 2, 44100);
+
+        var save = new SaveFileDialog
+        {
+            Filter = "Vorbis File (*.ogg)|*.ogg;|Wave File (*.wav)|*.wav;"
+        };
+
+        if (save.ShowDialog() != true)
+            return;
+        if (save.FileName != "")
+        {
+            buffer.SaveToFile(save.FileName);
+        }
     }
 
     private void aboutMenuItem_Click(object sender, RoutedEventArgs e)
@@ -237,5 +251,25 @@ public partial class MainWindow : Window
                 "(c)2022 Chelarasu Elena-Denisa, Miron Alexandru\r\n";
 
         MessageBox.Show(copyright, "Despre proiect");
+    }
+
+    private void saveAsMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        var temp_samples = ViewModel.Engine.Render(TimeSpan.Zero, ViewModel.Engine.Duration);
+        var samples = new short[temp_samples.Length];
+        AudioConvert.ConvertFloatTo16(temp_samples, samples);
+        var buffer = new SoundBuffer(samples, 2, 44100);
+
+        var save = new SaveFileDialog
+        {
+            Filter = "Vorbis File (*.ogg)|*.ogg;|Wave File (*.wav)|*.wav;"
+        };
+
+        if (save.ShowDialog() != true)
+            return;
+        if (save.FileName != "")
+        {
+            buffer.SaveToFile(save.FileName);
+        }
     }
 }
