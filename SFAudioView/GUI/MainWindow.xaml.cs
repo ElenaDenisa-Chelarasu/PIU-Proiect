@@ -93,7 +93,7 @@ public partial class MainWindow : Window
 {
     public MainWindowVM ViewModel { get; } = new();
 
-    public List<AudioTrack> AudioTracks { get; } = new(); 
+    public List<AudioTrack> AudioTracks { get; } = new();
 
     public MainWindow()
     {
@@ -127,10 +127,7 @@ public partial class MainWindow : Window
         //var audio = new AudioInstance(Audio.WhiteNoise(2, 44100, TimeSpan.FromSeconds(20)), TimeSpan.Zero);
 
 
-        ViewModel.Engine.SetAudio(new[]
-        {
-            audio
-        });
+        ViewModel.Engine.AddAudio(audio);
 
         AudioTracks.Clear();
         AudioTracks.Add(new AudioTrack()
@@ -138,13 +135,12 @@ public partial class MainWindow : Window
             ViewModel =
             {
                 TrackName = Path.GetFileName(open.FileName)
-            }
+            },
+            WaveformLeft = { ViewModel = { Audio = audio } },
+            WaveformRight = { ViewModel = { Audio = audio } }
         });
 
         float[] data = ViewModel.Engine.Render(TimeSpan.Zero, ViewModel.Engine.Duration);
-
-        AudioTracks[0].WaveformLeft.UpdateWaveform(data, 44100, 2, 0, 0, 44100 * 2 * 60);
-        AudioTracks[0].WaveformRight.UpdateWaveform(data, 44100, 2, 1, 0, 44100 * 2 * 60);
 
         AudioTracks.ForEach(x => AudioTrackItems.Items.Add(x));
     }

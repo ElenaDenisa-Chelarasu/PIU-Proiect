@@ -1,6 +1,7 @@
 ﻿using SFAudioCore.DataTypes;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,21 +12,55 @@ using System.Windows.Shapes;
 
 namespace SFAudioView.GUI;
 
+public class WaveformLogicViewModel : INotifyPropertyChanged
+{
+    public AudioInstance? Audio { get; set; }
+
+    private int _targetedChannel = 0;
+    public int TargetedChannel
+    {
+        get => _targetedChannel;
+        set
+        {
+            _targetedChannel = value;
+            NotifyChanged(nameof(TargetedChannel));
+        }
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void NotifyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+}
+
 /// <summary>
 /// Interaction logic for WaveformLogic.xaml
 /// </summary>
 public partial class WaveformLogic : UserControl
 {
+    public WaveformLogicViewModel ViewModel { get; }
+
     public WaveformLogic()
     {
         InitializeComponent();
+        ViewModel = (WaveformLogicViewModel)DataContext;
     }
 
-    public void UpdateWaveform(float[] renderedData, uint sampleRate, uint channels, uint channel, uint sampleStart, uint sampleEnd)
+    private void UpdateWaveform()
     {
-        int samples = (int)((sampleEnd - sampleStart) / channels);
+        WaveformPolygon.Points.Clear();
 
-        int samplesPerPoint = (int)(samples / Width);
+        if (ViewModel.Audio == null)
+            return;
+
+        int sampleStart = 0;
+        int sampleEnd = ViewModel.Audio.Source.SampleCount;
+        int channels = ViewModel.Audio.Source.Channels;
+        int channel = ViewModel.TargetedChannel;
+        float[] renderedData = ViewModel.Audio.Source.Data;
+
+        int samples = sampleEnd - sampleStart;
+
+        int samplesPerPoint = (int)(samples / ActualWidth + 1);
 
         float minValue = float.MaxValue;
         float maxValue = float.MinValue;
@@ -53,24 +88,25 @@ public partial class WaveformLogic : UserControl
             }
         }
 
-        // Add points to polygon
-
-        WaveformPolygon.Points.Clear();
-
-        double xstep = Width / (samples / samplesPerPoint);
+        double xstep = ActualWidth / (samples / samplesPerPoint);
 
         double xpos = 0;
 
         foreach (var strength in topPoints)
         {
-            WaveformPolygon.Points.Add(new Point(xpos, Height * (1.0 - strength) / 2.0));
+            WaveformPolygon.Points.Add(new Point(xpos, ActualHeight * (1.0 - strength) / 2.0));
             xpos += xstep;
         }
 
         foreach (var strength in bottomPoints.AsEnumerable().Reverse())
         {
             xpos -= xstep;
-            WaveformPolygon.Points.Add(new Point(xpos, Height * (1.0 - strength) / 2.0));
+            WaveformPolygon.Points.Add(new Point(xpos, ActualHeight * (1.0 - strength) / 2.0));
         }
+    }
+
+    private void UserControl_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        UpdateWaveform();
     }
 }

@@ -8,7 +8,7 @@ namespace SFAudioCore.DataTypes;
 
 public class AudioInstance
 {
-    public AudioInstance(Audio source, uint sampleStart)
+    public AudioInstance(Audio source, int sampleStart)
     {
         Source = source;
         SampleStart = sampleStart;
@@ -17,7 +17,7 @@ public class AudioInstance
     public AudioInstance(Audio source, TimeSpan timeStart)
     {
         Source = source;
-        SampleStart = (uint)(timeStart.TotalSeconds * source.SampleRate);
+        SampleStart = (int)(timeStart.TotalSeconds * source.SampleRate);
     }
 
     public float Panning { get; set; } = 0f;
@@ -26,5 +26,5 @@ public class AudioInstance
 
     public Audio Source { get; set; }
 
-    public uint SampleStart { get; set; }
+    public int SampleStart { get; set; }
 }

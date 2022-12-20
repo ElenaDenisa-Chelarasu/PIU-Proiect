@@ -4,12 +4,16 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:g="clr-namespace:SFAudioView.GUI"
-             mc:Ignorable="d">
+             mc:Ignorable="d"
+             HorizontalAlignment="Stretch"
+             d:DesignWidth="800"
+             d:DesignHeight="200"
+             MinWidth="300">
 
     <UserControl.DataContext>
         <g:AudioTrackVM/>
     </UserControl.DataContext>
-    
+
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -18,34 +22,63 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <StackPanel Background="White" Orientation="Horizontal" Margin="10">
-        <StackPanel MinWidth="180">
-            <DockPanel HorizontalAlignment="Stretch">
-                <Button>
-                    <Image Source="{StaticResource DropDownButton}"></Image>
+    <Border BorderThickness="1" BorderBrush="Gray" Margin="2">
+        <Grid Background="White" Margin="2">
+            <Grid.Resources>
+                <Style TargetType="TextBlock">
+                    <Setter Property="VerticalAlignment" Value="Center"/>
+                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                </Style>
+                <Style TargetType="TextBox">
+                    <Setter Property="VerticalAlignment" Value="Center"/>
+                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                </Style>
+            </Grid.Resources>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition MinWidth="100" Width="*"/>
+                <ColumnDefinition Width="4*"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="2*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="4*"/>
+                </Grid.RowDefinitions>
+                <Button Grid.Row="0" Grid.Column="0">
+                    <Image Stretch="Uniform" Source="{StaticResource DropDownButton}"></Image>
                 </Button>
-                <Border BorderBrush="Black" BorderThickness="1">
-                    <TextBlock FontSize="25" Text="{Binding TrackName}"/>
-                </Border>
-            </DockPanel>
-            <DockPanel HorizontalAlignment="Stretch" >
-                <TextBlock Width="60" DockPanel.Dock="Left">Left:</TextBlock>
-                <TextBlock Width="50">50%</TextBlock>
-                <Button DockPanel.Dock="Right">Mute</Button>
-            </DockPanel>
-            <DockPanel HorizontalAlignment="Stretch">
-                <TextBlock Width="60">Right:</TextBlock>
-                <TextBlock Width="50">50%</TextBlock>
-                <Button DockPanel.Dock="Right">Mute</Button>
-            </DockPanel>
-        </StackPanel>
-        <StackPanel Orientation="Vertical">
-            <g:WaveformLogic x:Name="WaveformLeft">
-
-            </g:WaveformLogic>
-            <g:WaveformLogic x:Name="WaveformRight">
-
-            </g:WaveformLogic>
-        </StackPanel>
-    </StackPanel>
+                <TextBlock Grid.Row="0" Grid.Column="1" FontSize="25" Text="{Binding TrackName}"/>
+                <Grid Grid.Row="1" Grid.ColumnSpan="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="0.5*"/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Slider Grid.Row="0" Grid.ColumnSpan="3" Margin="5" HorizontalAlignment="Stretch" VerticalAlignment="Center" Minimum="-1.0" Maximum="1.0"/>
+                    <TextBlock Grid.Row="1" Grid.Column="0">Left:</TextBlock>
+                    <TextBox Grid.Row="1" Grid.Column="1">50%</TextBox>
+                    <Button Grid.Row="1" Grid.Column="2">Mute</Button>
+                    <TextBlock Grid.Row="2" Grid.Column="0">Right:</TextBlock>
+                    <TextBox Grid.Row="2" Grid.Column="1">50%</TextBox>
+                    <Button Grid.Row="2" Grid.Column="2">Mute</Button>
+                </Grid>
+            </Grid>
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <g:WaveformLogic Grid.Row="0" x:Name="WaveformLeft"/>
+                <g:WaveformLogic Grid.Row="1" x:Name="WaveformRight"/>
+            </Grid>
+        </Grid>
+    </Border>
 </UserControl>

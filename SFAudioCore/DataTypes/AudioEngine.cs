@@ -13,8 +13,8 @@ namespace SFAudioCore.DataTypes;
 
 public class AudioEngine
 {
-    private const uint Channels = 2;
-    private const uint BufferSampleSize = 512;
+    private const int Channels = 2;
+    private const int BufferSampleSize = 512;
 
     private readonly AudioStream _stream;
     private readonly List<AudioInstance> _audio = new();
@@ -25,9 +25,9 @@ public class AudioEngine
     }
 
     public TimeSpan Duration => TimeSpan.FromSeconds(SampleCount / (float)SampleRate);
-    public uint SampleCount { get; private set; }
+    public int SampleCount { get; private set; }
 
-    public uint SampleRate => _stream.SampleRate;
+    public int SampleRate => (int)_stream.SampleRate;
 
     public bool Loop
     {
@@ -77,6 +77,36 @@ public class AudioEngine
         StateUpdated?.Invoke(this, EventArgs.Empty);
     }
 
+    public void AddAudio(AudioInstance sample)
+    {
+        if (_stream.Status == SoundStatus.Playing)
+            throw new InvalidOperationException("Cannot update samples while playing.");
+
+        if (sample.Source.Channels > 2 || sample.Source.SampleRate != SampleRate)
+            throw new InvalidOperationException("Unsupported audio.");
+
+        lock (_audio)
+        {
+            _audio.Add(sample);
+
+            SampleCount = _audio.Select(x => x.SampleStart + x.Source.SampleCount).Max();
+        }
+
+        StateUpdated?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void RemoveAudio(AudioInstance sample)
+    {
+        lock (_audio)
+        {
+            _audio.Remove(sample);
+
+            SampleCount = _audio.Select(x => x.SampleStart + x.Source.SampleCount).Max();
+        }
+
+        StateUpdated?.Invoke(this, EventArgs.Empty);
+    }
+
     public event EventHandler? StateUpdated;
 
     private class AudioStream : SoundStream
@@ -84,8 +114,8 @@ public class AudioEngine
         private readonly AudioEngine _engine;
         private float[]? _floatData;
 
-        private uint _samplePosition;
-        public uint SamplePosition
+        private int _samplePosition;
+        public int SamplePosition
         {
             get => _samplePosition;
             set
@@ -114,8 +144,8 @@ public class AudioEngine
                 return false;
             }
 
-            uint playingOffset = SamplePosition;
-            uint samples = Math.Min(BufferSampleSize, _engine.SampleCount - playingOffset);
+            int playingOffset = (int)SamplePosition;
+            int samples = Math.Min(BufferSampleSize, _engine.SampleCount - playingOffset);
 
             data = new short[samples * Channels];
 
@@ -130,7 +160,7 @@ public class AudioEngine
                 Array.Fill(_floatData, 0f);
             }
 
-            _engine.RenderInto(SamplePosition, SamplePosition + samples, _floatData);
+            _engine.RenderInto((int)SamplePosition, (int)(SamplePosition + samples), _floatData);
 
             // Convert float samples back into short samples
 
@@ -144,15 +174,15 @@ public class AudioEngine
 
         protected override void OnSeek(Time timeOffset)
         {
-            _samplePosition = (uint)Math.Round(timeOffset.AsSeconds() * SampleRate);
+            _samplePosition = (int)Math.Round(timeOffset.AsSeconds() * SampleRate);
             _engine.StateUpdated?.Invoke(this, EventArgs.Empty);
         }
     }
 
     public float[] Render(TimeSpan start, TimeSpan end)
     {
-        uint sampleStart = (uint)(start.TotalSeconds * SampleRate);
-        uint sampleEnd = (uint)(end.TotalSeconds * SampleRate);
+        int sampleStart = (int)(start.TotalSeconds * SampleRate);
+        int sampleEnd = (int)(end.TotalSeconds * SampleRate);
 
         var data = new float[(sampleEnd - sampleStart) * Channels];
 
@@ -161,7 +191,7 @@ public class AudioEngine
         return data;
     }
 
-    public void RenderInto(uint sampleStart, uint sampleEnd, float[] floatData)
+    public void RenderInto(int sampleStart, int sampleEnd, float[] floatData)
     {
         if (floatData.Length / Channels != sampleEnd - sampleStart)
         {
@@ -183,22 +213,22 @@ public class AudioEngine
             sampleEnd = SampleCount;
         }
 
-        uint playingOffset = sampleStart;
-        uint samples = sampleEnd - sampleStart;
+        int playingOffset = sampleStart;
+        int samples = sampleEnd - sampleStart;
 
-        uint fillStart = playingOffset * Channels;
-        uint fillEnd = (playingOffset + samples) * Channels;
+        int fillStart = playingOffset * Channels;
+        int fillEnd = (playingOffset + samples) * Channels;
 
         // Mix some shit
         foreach (var audio in _audio)
         {
             // We can only mix in samples that are shared by both intervals
 
-            uint audioStart = audio.SampleStart * Channels;
-            uint audioEnd = (audio.SampleStart + audio.Source.SampleCount) * Channels;
+            int audioStart = audio.SampleStart * Channels;
+            int audioEnd = (audio.SampleStart + audio.Source.SampleCount) * Channels;
 
-            uint mixStart = Math.Max(fillStart, audioStart);
-            uint mixEnd = Math.Min(fillEnd, audioEnd);
+            int mixStart = Math.Max(fillStart, audioStart);
+            int mixEnd = Math.Min(fillEnd, audioEnd);
 
             if (mixStart >= mixEnd)
             {
@@ -206,9 +236,9 @@ public class AudioEngine
                 continue;
             }
 
-            uint trueFillStart = mixStart - fillStart;
-            uint trueAudioStart = mixStart - audioStart;
-            uint dataCount = mixEnd - mixStart;
+            int trueFillStart = mixStart - fillStart;
+            int trueAudioStart = mixStart - audioStart;
+            int dataCount = mixEnd - mixStart;
 
             float globalVolumeMod = Math.Clamp(audio.Volume, 0f, 1f);
 

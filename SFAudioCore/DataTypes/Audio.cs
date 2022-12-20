@@ -10,16 +10,16 @@ namespace SFAudioCore.DataTypes;
 
 public class Audio
 {
-    public uint Channels { get; private set; } = 1;
+    public int Channels { get; private set; } = 1;
 
     /// <summary>
     /// Values for all of the samples in the audio.
     /// </summary>
     public float[] Data { get; private set; } = Array.Empty<float>();
 
-    public uint SampleCount => (uint)(Data.Length / Channels);
+    public int SampleCount => (Data.Length / Channels);
 
-    public uint SampleRate { get; private set; } = 44100;
+    public int SampleRate { get; private set; } = 44100;
 
     public TimeSpan Duration => TimeSpan.FromSeconds(SampleCount / (float)SampleRate);
 
@@ -32,16 +32,16 @@ public class Audio
 
         return new Audio
         {
-            Channels = buffer.ChannelCount,
+            Channels = (int)buffer.ChannelCount,
             Data = data,
-            SampleRate = buffer.SampleRate
+            SampleRate = (int)buffer.SampleRate
         };
     }
 
-    public static Audio WhiteNoise(uint channels, uint sampleRate, TimeSpan duration)
-        => WhiteNoise(channels, sampleRate, (uint)(duration.TotalSeconds * sampleRate));
+    public static Audio WhiteNoise(int channels, int sampleRate, TimeSpan duration)
+        => WhiteNoise(channels, sampleRate, (int)(duration.TotalSeconds * sampleRate));
 
-    public static Audio WhiteNoise(uint channels, uint sampleRate, uint samples)
+    public static Audio WhiteNoise(int channels, int sampleRate, int samples)
     {
         var random = new Random();
 
@@ -53,10 +53,10 @@ public class Audio
         };
     }
 
-    public static Audio Silence(uint channels, uint sampleRate, TimeSpan duration)
-        => Silence(channels, sampleRate, (uint)(duration.TotalSeconds * sampleRate));
+    public static Audio Silence(int channels, int sampleRate, TimeSpan duration)
+        => Silence(channels, sampleRate, (int)(duration.TotalSeconds * sampleRate));
 
-    public static Audio Silence(uint channels, uint sampleRate, uint samples)
+    public static Audio Silence(int channels, int sampleRate, int samples)
     {
         return new Audio
         {
@@ -71,6 +71,6 @@ public class Audio
         short[] data = new short[Data.Length];
         AudioConvert.ConvertFloatTo16(Data, data);
 
-        return new SoundBuffer(data, Channels, SampleRate); 
+        return new SoundBuffer(data, (uint)Channels, (uint)SampleRate); 
     }
 }
