@@ -1,6 +1,10 @@
 ﻿using SFAudioCore.DataTypes;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input.StylusPlugIns;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
@@ -17,21 +21,56 @@ public partial class WaveformLogic : UserControl
         InitializeComponent();
     }
 
-
-    public void UpdateWaveform(float[] renderedData, uint sampleRate, uint channels)
+    public void UpdateWaveform(float[] renderedData, uint sampleRate, uint channels, uint channel, uint sampleStart, uint sampleEnd)
     {
-        // Add top points
+        int samples = (int)((sampleEnd - sampleStart) / channels);
 
-        double width = ActualWidth;
-        double height = ActualHeight;
+        int samplesPerPoint = (int)(samples / Width);
 
-        int samples = (int)(renderedData.Length / channels);
+        float minValue = float.MaxValue;
+        float maxValue = float.MinValue;
 
-        for (int i = 0; i < renderedData.Length; i += (int)channels)
+        int samplesAccumulated = 0;
+
+        var topPoints = new List<float>();
+        var bottomPoints = new List<float>();
+
+        for (int i = (int)(channel + sampleStart * channels); i < sampleEnd * channels; i += (int)channels)
         {
+            minValue = Math.Min(minValue, renderedData[i]);
+            maxValue = Math.Max(maxValue, renderedData[i]);
+
+            samplesAccumulated++;
+
+            if (samplesAccumulated >= samplesPerPoint)
+            {
+                samplesAccumulated -= samplesPerPoint;
+                topPoints.Add(maxValue);
+                bottomPoints.Add(minValue);
+
+                minValue = float.MaxValue;
+                maxValue = float.MinValue;
+            }
         }
 
-        // Add bottom points
-    }
+        // Add points to polygon
 
+        WaveformPolygon.Points.Clear();
+
+        double xstep = Width / (samples / samplesPerPoint);
+
+        double xpos = 0;
+
+        foreach (var strength in topPoints)
+        {
+            WaveformPolygon.Points.Add(new Point(xpos, Height * (1.0 - strength) / 2.0));
+            xpos += xstep;
+        }
+
+        foreach (var strength in bottomPoints.AsEnumerable().Reverse())
+        {
+            xpos -= xstep;
+            WaveformPolygon.Points.Add(new Point(xpos, Height * (1.0 - strength) / 2.0));
+        }
+    }
 }

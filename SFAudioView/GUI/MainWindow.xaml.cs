@@ -22,6 +22,7 @@ using Path = System.IO.Path;
 using System.Diagnostics;
 using SFML.System;
 using SFAudioView.GUI;
+using System.Windows.Markup;
 
 namespace SFAudio;
 
@@ -50,6 +51,28 @@ public class MainWindowVM : INotifyPropertyChanged
         {
             _actionDescriptionText = value;
             NotifyChanged(nameof(ActionDescriptionText));
+        }
+    }
+
+    private TimeSpan _playRegionSize;
+    public TimeSpan PlayRegionSize
+    {
+        get => _playRegionSize;
+        set
+        {
+            _playRegionSize = value;
+            NotifyChanged(nameof(PlayRegionSize));
+        }
+    }
+
+    private TimeSpan _playRegionStart;
+    public TimeSpan PlayRegionStart
+    {
+        get => _playRegionStart;
+        set
+        {
+            _playRegionStart = value;
+            NotifyChanged(nameof(PlayRegionStart));
         }
     }
 
@@ -118,7 +141,12 @@ public partial class MainWindow : Window
             }
         });
 
-        AudioTrackItems.ItemsSource = AudioTracks;
+        float[] data = ViewModel.Engine.Render(TimeSpan.Zero, ViewModel.Engine.Duration);
+
+        AudioTracks[0].WaveformLeft.UpdateWaveform(data, 44100, 2, 0, 0, 44100 * 2 * 60);
+        AudioTracks[0].WaveformRight.UpdateWaveform(data, 44100, 2, 1, 0, 44100 * 2 * 60);
+
+        AudioTracks.ForEach(x => AudioTrackItems.Items.Add(x));
     }
 
     public void PlayButton_Click(object sender, RoutedEventArgs e)

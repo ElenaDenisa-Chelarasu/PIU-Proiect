@@ -39,12 +39,13 @@
                 <Button DockPanel.Dock="Right">Mute</Button>
             </DockPanel>
         </StackPanel>
-        <ItemsControl Name="WaveformItems" MinWidth="200">
-            <!--<ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <g:WaveformLogic Margin="5" Height="50" BorderBrush="Black" BorderThickness="1"/>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>-->
-        </ItemsControl>
+        <StackPanel Orientation="Vertical">
+            <g:WaveformLogic x:Name="WaveformLeft">
+
+            </g:WaveformLogic>
+            <g:WaveformLogic x:Name="WaveformRight">
+
+            </g:WaveformLogic>
+        </StackPanel>
     </StackPanel>
 </UserControl>

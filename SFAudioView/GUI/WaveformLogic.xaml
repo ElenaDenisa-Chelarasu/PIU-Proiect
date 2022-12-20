@@ -4,8 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:SFAudioView.GUI"
-             Foreground="Black">
+             Foreground="Black"
+             Width="450"
+             Height="60"
+             Background="White">
     <Canvas x:Name="MainCanvas">
-        <Polygon x:Name="WaveformPolygon"></Polygon>
+        <Polygon x:Name="WaveformPolygon" Fill="Blue"></Polygon>
     </Canvas>
 </UserControl>
