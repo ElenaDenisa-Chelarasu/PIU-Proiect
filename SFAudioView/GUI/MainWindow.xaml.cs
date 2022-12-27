@@ -26,9 +26,9 @@ using System.Windows.Markup;
 
 namespace SFAudio;
 
-public class MainWindowVM : INotifyPropertyChanged
+public class MainWindowViewModel : ViewModelBase
 {
-    public MainWindowVM()
+    public MainWindowViewModel()
     {
         void OnEngineTick(object? sender, EventArgs e)
         {
@@ -47,43 +47,27 @@ public class MainWindowVM : INotifyPropertyChanged
     public string ActionDescriptionText
     {
         get => _actionDescriptionText;
-        set
-        {
-            _actionDescriptionText = value;
-            NotifyChanged(nameof(ActionDescriptionText));
-        }
+        set => Change(ref _actionDescriptionText, value);
     }
 
     private TimeSpan _playRegionSize;
     public TimeSpan PlayRegionSize
     {
         get => _playRegionSize;
-        set
-        {
-            _playRegionSize = value;
-            NotifyChanged(nameof(PlayRegionSize));
-        }
+        set => Change(ref _playRegionSize, value);
     }
 
     private TimeSpan _playRegionStart;
     public TimeSpan PlayRegionStart
     {
         get => _playRegionStart;
-        set
-        {
-            _playRegionStart = value;
-            NotifyChanged(nameof(PlayRegionStart));
-        }
+        set => Change(ref _playRegionStart, value);
     }
 
     public string SampleRateText => Engine.SampleRate + " Hz";
     public string TimeCursorText => Engine.TimePosition.ToString("hh\\:mm\\:ss\\.fff");
     public string DurationText => Engine.Duration.ToString("hh\\:mm\\:ss\\.fff");
     public string LoopingText => Engine.Loop ? "Looping On." : "Looping Off.";
-
-    private void NotifyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
-    public event PropertyChangedEventHandler? PropertyChanged;
 }
 
 /// <summary>
@@ -91,19 +75,11 @@ public class MainWindowVM : INotifyPropertyChanged
 /// </summary>
 public partial class MainWindow : Window
 {
-    public MainWindowVM ViewModel { get; } = new();
-
-    public List<AudioTrack> AudioTracks { get; } = new();
+    public MainWindowViewModel ViewModel => (MainWindowViewModel)DataContext;
 
     public MainWindow()
     {
         InitializeComponent();
-        ViewModel = (MainWindowVM)DataContext;
-    }
-
-    private void HelloWorldButton_Click(object sender, RoutedEventArgs e)
-    {
-        MessageBox.Show("Hello, world!");
     }
 
     /// <summary>
@@ -129,20 +105,22 @@ public partial class MainWindow : Window
 
         ViewModel.Engine.AddAudio(audio);
 
-        AudioTracks.Clear();
-        AudioTracks.Add(new AudioTrack()
+        AudioTrack audioTrack;
+
+        AudioTrackItems.Items.Add(audioTrack = new AudioTrack()
         {
             ViewModel =
             {
+                Audio = audio,
                 TrackName = Path.GetFileName(open.FileName)
             },
             WaveformLeft = { ViewModel = { Audio = audio } },
             WaveformRight = { ViewModel = { Audio = audio } }
         });
 
-        float[] data = ViewModel.Engine.Render(TimeSpan.Zero, ViewModel.Engine.Duration);
+        audioTrack.TrackRemoved += OnTrackRemoved;
 
-        AudioTracks.ForEach(x => AudioTrackItems.Items.Add(x));
+        //float[] data = ViewModel.Engine.Render(TimeSpan.Zero, ViewModel.Engine.Duration);
     }
 
     public void PlayButton_Click(object sender, RoutedEventArgs e)
@@ -294,6 +272,19 @@ public partial class MainWindow : Window
         if (save.FileName != "")
         {
             buffer.SaveToFile(save.FileName);
+        }
+    }
+
+    private void OnTrackRemoved(object? sender, EventArgs e)
+    {
+        if (sender is AudioTrack audioTrack)
+        {
+            var audio = audioTrack.ViewModel.Audio;
+            
+            if (audio != null)
+                ViewModel.Engine.RemoveAudio(audio);
+
+            AudioTrackItems.Items.Remove(audioTrack);
         }
     }
 }

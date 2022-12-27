@@ -10,17 +10,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Domain\**" />
     <Compile Remove="Effects\**" />
+    <EmbeddedResource Remove="Domain\**" />
     <EmbeddedResource Remove="Effects\**" />
+    <None Remove="Domain\**" />
     <None Remove="Effects\**" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="SFML.Net" Version="2.5.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Domain\" />
   </ItemGroup>
 
 </Project>

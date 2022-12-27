@@ -12,7 +12,7 @@ using System.Windows.Shapes;
 
 namespace SFAudioView.GUI;
 
-public class WaveformLogicViewModel : INotifyPropertyChanged
+public class WaveformLogicViewModel : ViewModelBase
 {
     public AudioInstance? Audio { get; set; }
 
@@ -20,16 +20,8 @@ public class WaveformLogicViewModel : INotifyPropertyChanged
     public int TargetedChannel
     {
         get => _targetedChannel;
-        set
-        {
-            _targetedChannel = value;
-            NotifyChanged(nameof(TargetedChannel));
-        }
+        set => Change(ref _targetedChannel, value);
     }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    private void NotifyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
 
 /// <summary>
@@ -37,12 +29,11 @@ public class WaveformLogicViewModel : INotifyPropertyChanged
 /// </summary>
 public partial class WaveformLogic : UserControl
 {
-    public WaveformLogicViewModel ViewModel { get; }
+    public WaveformLogicViewModel ViewModel => (WaveformLogicViewModel)DataContext;
 
     public WaveformLogic()
     {
         InitializeComponent();
-        ViewModel = (WaveformLogicViewModel)DataContext;
     }
 
     private void UpdateWaveform()

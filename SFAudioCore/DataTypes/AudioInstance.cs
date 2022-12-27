@@ -22,7 +22,13 @@ public class AudioInstance
 
     public float Panning { get; set; } = 0f;
 
-    public float Volume { get; set; } = 1f;
+    public float VolumeLeft { get; set; } = 1f;
+
+    public float VolumeRight { get; set; } = 1f;
+
+    public bool MuteLeft { get; set; } = false;
+
+    public bool MuteRight { get; set; } = false;
 
     public Audio Source { get; set; }
 

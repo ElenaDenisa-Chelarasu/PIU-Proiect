@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SFAudioCore.DataTypes;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -16,22 +17,16 @@ using System.Windows.Shapes;
 
 namespace SFAudioView.GUI;
 
-public class AudioTrackVM : INotifyPropertyChanged
+public class AudioTrackViewModel : ViewModelBase
 {
+    public AudioInstance? Audio { get; set; }
+
     private string _trackName = "";
     public string TrackName
     {
         get => _trackName;
-        set
-        {
-            _trackName = value;
-            NotifyChanged(nameof(TrackName));
-        }
+        set => Change(ref _trackName, value);
     }
-
-    private void NotifyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
-    public event PropertyChangedEventHandler? PropertyChanged;
 }
 
 /// <summary>
@@ -39,11 +34,65 @@ public class AudioTrackVM : INotifyPropertyChanged
 /// </summary>
 public partial class AudioTrack : UserControl
 {
-    public AudioTrackVM ViewModel { get; set; }
+    public AudioTrackViewModel ViewModel => (AudioTrackViewModel)DataContext;
+
+    public event EventHandler? TrackRemoved;
 
     public AudioTrack()
     {
         InitializeComponent();
-        ViewModel = (AudioTrackVM)DataContext;
+    }
+
+    private void VolumeLeft_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (ViewModel.Audio == null)
+            return;
+
+        ViewModel.Audio.VolumeLeft = (float)e.NewValue;
+    }
+
+    private void VolumeRight_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (ViewModel.Audio == null)
+            return;
+
+        ViewModel.Audio.VolumeRight = (float)e.NewValue;
+    }
+
+    private void MuteLeft_Checked(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.Audio == null)
+            return;
+
+        ViewModel.Audio.MuteLeft = true;
+    }
+
+    private void MuteLeft_Unchecked(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.Audio == null)
+            return;
+
+        ViewModel.Audio.MuteLeft = false;
+    }
+
+    private void MuteRight_Checked(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.Audio == null)
+            return;
+
+        ViewModel.Audio.MuteRight = true;
+    }
+
+    private void MuteRight_Unchecked(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.Audio == null)
+            return;
+
+        ViewModel.Audio.MuteRight = false;
+    }
+
+    private void RemoveTrack_Click(object sender, RoutedEventArgs e)
+    {
+        TrackRemoved?.Invoke(this, e);
     }
 }

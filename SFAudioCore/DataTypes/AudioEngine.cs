@@ -71,7 +71,15 @@ public class AudioEngine
             _audio.Clear();
             _audio.AddRange(samples);
 
-            SampleCount = _audio.Select(x => x.SampleStart + x.Source.SampleCount).Max();
+            if (_audio.Count == 0)
+            {
+                Stop();
+                SampleCount = 0;
+            }
+            else
+            {
+                SampleCount = _audio.Select(x => x.SampleStart + x.Source.SampleCount).Max();
+            }
         }
 
         StateUpdated?.Invoke(this, EventArgs.Empty);
@@ -101,11 +109,21 @@ public class AudioEngine
         {
             _audio.Remove(sample);
 
-            SampleCount = _audio.Select(x => x.SampleStart + x.Source.SampleCount).Max();
+            if (_audio.Count == 0)
+            {
+                Stop();
+                SampleCount = 0;
+            }
+            else
+            {
+                SampleCount = _audio.Select(x => x.SampleStart + x.Source.SampleCount).Max();
+            }
         }
 
         StateUpdated?.Invoke(this, EventArgs.Empty);
     }
+
+    public ICollection<AudioInstance> AudioList => _audio;
 
     public event EventHandler? StateUpdated;
 
@@ -240,10 +258,10 @@ public class AudioEngine
             int trueAudioStart = mixStart - audioStart;
             int dataCount = mixEnd - mixStart;
 
-            float globalVolumeMod = Math.Clamp(audio.Volume, 0f, 1f);
+            float globalVolumeMod = Math.Clamp(1f, 0f, 1f); // No modifiers implemented yet
 
-            float leftVolumeMod = Math.Clamp(-(audio.Panning - 1f), 0f, 1f) * globalVolumeMod;
-            float rightVolumeMod = Math.Clamp(audio.Panning + 1f, 0f, 1f) * globalVolumeMod;
+            float leftVolumeMod = audio.MuteLeft ? 0f : Math.Clamp(audio.VolumeLeft, 0f, 1f) * globalVolumeMod;
+            float rightVolumeMod = audio.MuteRight ? 0f : Math.Clamp(audio.VolumeRight, 0f, 1f) * globalVolumeMod;
 
             // Stereo mixing
             if (audio.Source.Channels == 2)
