@@ -9,10 +9,8 @@
              MinHeight="20"
              Background="White"
              SizeChanged="UserControl_SizeChanged">
-    <UserControl.DataContext>
-        <local:WaveformLogicViewModel/>
-    </UserControl.DataContext>
     <Canvas x:Name="MainCanvas">
         <Polygon x:Name="WaveformPolygon" Fill="Blue"></Polygon>
+        <Polygon x:Name="PlayPositionPolygon" Fill="Black"></Polygon>
     </Canvas>
 </UserControl>

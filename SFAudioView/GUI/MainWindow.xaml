@@ -1,21 +1,18 @@
-﻿<Window x:Class="SFAudio.MainWindow"
+﻿<Window x:Class="SFAudioView.GUI.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:SFAudio"
-        xmlns:g="clr-namespace:SFAudioView.GUI"
+        xmlns:vm="clr-namespace:SFAudioView.ViewModels"
+        xmlns:g="clr-namespace:SFAudioView.GUI" xmlns:i="http://schemas.microsoft.com/xaml/behaviors" xmlns:datatypes="clr-namespace:SFAudioCore.DataTypes;assembly=SFAudioCore"
         mc:Ignorable="d"
         Title="MainWindow"
         Height="450"
         Width="800"
-        Closing="Window_Closing"
-        KeyDown="Window_OnKeyDown"
-        KeyUp="Window_OnKeyUp"
         WindowStartupLocation="CenterScreen">
 
     <Window.DataContext>
-        <local:MainWindowViewModel/>
+        <vm:AppViewModel/>
     </Window.DataContext>
     
     <Window.Resources>
@@ -85,37 +82,73 @@
         <StackPanel>
             <StackPanel Background="White" Orientation="Horizontal" Width="300" Height="45" HorizontalAlignment="Left">
                 <StackPanel Height="45" Orientation="Horizontal">
-                    <Button x:Name="PlayButton" Click="PlayButton_Click" MouseMove="GenericDescription_MouseOver">
+                    <!-- Play Button -->
+                    <Button>
                         <Image Source="{StaticResource PlayButton}"/>
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="Click">
+                                <i:InvokeCommandAction Command="{Binding PlayCommand}" PassEventArgsToCommand="True"/>
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
                     </Button>
-                    <Button x:Name="PauseButton" Click="PauseButton_Click" MouseMove="GenericDescription_MouseOver">
+                    <!-- Pause Button -->
+                    <Button>
                         <Image Source="{StaticResource PauseButton}"/>
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="Click">
+                                <i:InvokeCommandAction Command="{Binding PauseCommand}" PassEventArgsToCommand="True"/>
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
                     </Button>
-                    <Button x:Name="StopButton" Click="StopButton_Click" MouseMove="GenericDescription_MouseOver">
+                    <!-- Stop Button -->
+                    <Button>
                         <Image Source="{StaticResource StopButton}"/>
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="Click">
+                                <i:InvokeCommandAction Command="{Binding StopCommand}" PassEventArgsToCommand="True"/>
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
                     </Button>
-                    <Button x:Name="SkipLeftButton" Click="SkipLeftButton_Click" MouseMove="GenericDescription_MouseOver">
+                    <!-- Skip Left Button -->
+                    <Button>
                         <Image Source="{StaticResource SkipLeftButton}"/>
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="Click">
+                                <i:InvokeCommandAction Command="{Binding SkipLeftCommand}" PassEventArgsToCommand="True"/>
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
                     </Button>
-                    <Button x:Name="SkipRightButton" Click="SkipRightButton_Click" MouseMove="GenericDescription_MouseOver">
+                    <!-- Skip Right Button -->
+                    <Button>
                         <Image Source="{StaticResource SkipRightButton}"/>
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="Click">
+                                <i:InvokeCommandAction Command="{Binding SkipRightCommand}" PassEventArgsToCommand="True"/>
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
                     </Button>
-                    <Button x:Name="LoopButton" Click="LoopButton_Click" MouseMove="GenericDescription_MouseOver">
+                    <!-- Loop Button -->
+                    <Button>
                         <Image Source="{StaticResource LoopButton}"/>
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="Click">
+                                <i:InvokeCommandAction Command="{Binding ToggleCommand}" PassEventArgsToCommand="True"/>
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
                     </Button>
                 </StackPanel>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-                <TextBlock Name="TimeCursorTextBlock" Text="{Binding TimeCursorText, Mode=OneWay}"/>
+                <TextBlock Name="TimeCursorTextBlock" Text="{Binding TimeCursorText}"/>
                 <TextBlock Text="/"/>
-                <TextBlock Name="TotalTimeTextBlock" Text="{Binding DurationText, Mode=OneWay}"/>
+                <TextBlock Name="TotalTimeTextBlock" Text="{Binding DurationText}"/>
                 <TextBlock Text=" | "/>
-                <TextBlock Name="LoopingTextBlock" Text="{Binding LoopingText, Mode=OneWay}"/>
+                <TextBlock Name="LoopingTextBlock" Text="{Binding LoopingText}"/>
             </StackPanel>
-            <ItemsControl Name="AudioTrackItems">
+            <ItemsControl Name="AudioTrackItems" ItemsSource="{Binding AudioTracks}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <g:AudioTrack/>
+                        <g:AudioTrack TrackRemoved="OnTrackRemoved" Audio="{Binding .}" PlayPosition="{Binding Path=DataContext.PlayPosition, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=g:MainWindow}}"/>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

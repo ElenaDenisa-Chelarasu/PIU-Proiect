@@ -3,17 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:g="clr-namespace:SFAudioView.GUI"
+             xmlns:gui="clr-namespace:SFAudioView.GUI" 
+             xmlns:vm="clr-namespace:SFAudioView.ViewModels"
              mc:Ignorable="d"
              HorizontalAlignment="Stretch"
              d:DesignWidth="800"
              d:DesignHeight="200"
-             MinWidth="300">
-
-    <UserControl.DataContext>
-        <g:AudioTrackViewModel/>
-    </UserControl.DataContext>
-
+             MinWidth="300"
+             x:Name="Self">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -52,7 +49,7 @@
                         <MenuItem Header="Remove Audio Track" Name="RemoveTrack" Click="RemoveTrack_Click"></MenuItem>
                     </MenuItem>
                 </Menu>
-                <TextBlock Grid.Row="0" Grid.Column="1" FontSize="25" Text="{Binding TrackName}"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" FontSize="25" Text="{Binding Audio.Name, ElementName=Self}"/>
                 <Grid Grid.Row="1" Grid.ColumnSpan="2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
@@ -64,14 +61,21 @@
                         <RowDefinition/>
                         <RowDefinition/>
                     </Grid.RowDefinitions>
-                    
-                    <TextBlock Grid.Row="1" Grid.Column="0">Left:</TextBlock>
-                    <Slider Grid.Row="1" Grid.Column="1" Name="VolumeLeft" Minimum="0" Maximum="1" Value="1" TickFrequency="0.25" TickPlacement="BottomRight" VerticalAlignment="Center" ValueChanged="VolumeLeft_ValueChanged"/>
-                    <ToggleButton Margin="5" Grid.Row="1" Grid.Column="2" Name="MuteLeft" Checked="MuteLeft_Checked" Unchecked="MuteLeft_Unchecked">Mute</ToggleButton>
-                    
-                    <TextBlock Grid.Row="2" Grid.Column="0">Right:</TextBlock>
-                    <Slider Grid.Row="2" Grid.Column="1" Name="VolumeRight" Minimum="0" Maximum="1" Value="1" TickFrequency="0.25" TickPlacement="BottomRight" VerticalAlignment="Center" ValueChanged="VolumeRight_ValueChanged"/>
-                    <ToggleButton Margin="5" Grid.Row="2" Grid.Column="2" Name="MuteRight" Checked="MuteRight_Checked" Unchecked="MuteRight_Unchecked">Mute</ToggleButton>
+
+                    <!-- Left channel modifiers -->
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Left:"/>
+
+                    <Slider Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" TickFrequency="0.25" TickPlacement="BottomRight" 
+                            Minimum="0" Maximum="1" Value="{Binding Audio.LeftVolume, ElementName=Self}"/>
+                    <ToggleButton Margin="5" Grid.Row="1" Grid.Column="2" Content="Mute" IsChecked="{Binding Audio.LeftMuted, ElementName=Self}"/>
+
+                    <!-- Right channel modifiers -->
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Right:"/>
+
+                    <Slider Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" TickFrequency="0.25" TickPlacement="BottomRight" 
+                            Minimum="0" Maximum="1" Value="{Binding Audio.RightVolume, ElementName=Self}"/>
+                    <ToggleButton Margin="5" Grid.Row="2" Grid.Column="2" Content="Mute" IsChecked="{Binding Audio.RightMuted, ElementName=Self}"/>
+
                 </Grid>
             </Grid>
             <Grid Grid.Column="1">
@@ -79,8 +83,8 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <g:WaveformLogic Grid.Row="0" x:Name="WaveformLeft"/>
-                <g:WaveformLogic Grid.Row="1" x:Name="WaveformRight"/>
+                <gui:WaveformLogic Grid.Row="0" x:Name="WaveformLeft" Audio="{Binding Audio, ElementName=Self}" TargetedChannel="0" PlayPosition="{Binding PlayPosition, Mode=TwoWay, ElementName=Self}"/>
+                <gui:WaveformLogic Grid.Row="1" x:Name="WaveformRight" Audio="{Binding Audio, ElementName=Self}" TargetedChannel="1" PlayPosition="{Binding PlayPosition, Mode=TwoWay, ElementName=Self}"/>
             </Grid>
         </Grid>
     </Border>

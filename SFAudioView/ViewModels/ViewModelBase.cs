@@ -6,20 +6,14 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SFAudioView.GUI;
+namespace SFAudioView.ViewModels;
 
 public class ViewModelBase : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    protected void NotifyChanged([CallerMemberName] string? name = default)
+    public void Notify([CallerMemberName] string? name = default)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-    }
-
-    protected void Change<T>(ref T field, T value, [CallerMemberName] string? name = default)
-    {
-        field = value;
-        NotifyChanged(name);
     }
 }

@@ -63,7 +63,7 @@ public class AudioEngine
         if (_stream.Status == SoundStatus.Playing)
             throw new InvalidOperationException("Cannot update samples while playing.");
 
-        if (samples.Any(x => x.Source.Channels > 2 || x.Source.SampleRate != SampleRate))
+        if (samples.Any(x => x.Channels > 2 || x.SampleRate != SampleRate))
             throw new InvalidOperationException("Unsupported audio.");
 
         lock (_audio)
@@ -78,7 +78,7 @@ public class AudioEngine
             }
             else
             {
-                SampleCount = _audio.Select(x => x.SampleStart + x.Source.SampleCount).Max();
+                SampleCount = _audio.Select(x => x.SampleCount).Max();
             }
         }
 
@@ -90,14 +90,14 @@ public class AudioEngine
         if (_stream.Status == SoundStatus.Playing)
             throw new InvalidOperationException("Cannot update samples while playing.");
 
-        if (sample.Source.Channels > 2 || sample.Source.SampleRate != SampleRate)
+        if (sample.Channels > 2 || sample.SampleRate != SampleRate)
             throw new InvalidOperationException("Unsupported audio.");
 
         lock (_audio)
         {
             _audio.Add(sample);
 
-            SampleCount = _audio.Select(x => x.SampleStart + x.Source.SampleCount).Max();
+            SampleCount = _audio.Select(x => x.SampleCount).Max();
         }
 
         StateUpdated?.Invoke(this, EventArgs.Empty);
@@ -116,7 +116,7 @@ public class AudioEngine
             }
             else
             {
-                SampleCount = _audio.Select(x => x.SampleStart + x.Source.SampleCount).Max();
+                SampleCount = _audio.Select(x => x.SampleCount).Max();
             }
         }
 
@@ -242,8 +242,8 @@ public class AudioEngine
         {
             // We can only mix in samples that are shared by both intervals
 
-            int audioStart = audio.SampleStart * Channels;
-            int audioEnd = (audio.SampleStart + audio.Source.SampleCount) * Channels;
+            int audioStart = 0;
+            int audioEnd = audio.SampleCount * Channels;
 
             int mixStart = Math.Max(fillStart, audioStart);
             int mixEnd = Math.Min(fillEnd, audioEnd);
@@ -260,11 +260,11 @@ public class AudioEngine
 
             float globalVolumeMod = Math.Clamp(1f, 0f, 1f); // No modifiers implemented yet
 
-            float leftVolumeMod = audio.MuteLeft ? 0f : Math.Clamp(audio.VolumeLeft, 0f, 1f) * globalVolumeMod;
-            float rightVolumeMod = audio.MuteRight ? 0f : Math.Clamp(audio.VolumeRight, 0f, 1f) * globalVolumeMod;
+            float leftVolumeMod = audio.LeftMuted ? 0f : Math.Clamp(audio.LeftVolume, 0f, 1f) * globalVolumeMod;
+            float rightVolumeMod = audio.RightMuted ? 0f : Math.Clamp(audio.RightVolume, 0f, 1f) * globalVolumeMod;
 
             // Stereo mixing
-            if (audio.Source.Channels == 2)
+            if (audio.Channels == 2)
             {
                 // There are two values for each sample
                 // -1f = full left, 1f = full right
@@ -273,7 +273,7 @@ public class AudioEngine
                 {
                     fixed (float* fPtr = &floatData[trueFillStart])
                     {
-                        fixed (float* aPtr = &audio.Source.Data[trueAudioStart])
+                        fixed (float* aPtr = &audio.Data.Span[trueAudioStart])
                         {
                             int dataIndex = 0;
                             while (dataIndex < dataCount)
@@ -288,7 +288,7 @@ public class AudioEngine
             }
 
             // Mono mixing - duplicate samples to simualte stereo
-            else if (audio.Source.Channels == 1)
+            else if (audio.Channels == 1)
             {
                 // There is one value for each sample which we must duplicate
                 // Advance half as fast on audio source
@@ -297,7 +297,7 @@ public class AudioEngine
                 {
                     fixed (float* fPtr = &floatData[trueFillStart])
                     {
-                        fixed (float* aPtr = &audio.Source.Data[trueAudioStart / 2])
+                        fixed (float* aPtr = &audio.Data.Span[trueAudioStart / 2])
                         {
                             int dataIndex = 0;
                             int sampleIndex = 0;

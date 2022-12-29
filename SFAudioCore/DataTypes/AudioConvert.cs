@@ -10,7 +10,7 @@ namespace SFAudioCore.DataTypes;
 public static class AudioConvert
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Convert16ToFloat(Span<short> from, Span<float> to)
+    public static void Convert16ToFloat(ReadOnlySpan<short> from, Span<float> to)
     {
         if (from.Length != to.Length)
             throw new InvalidOperationException("Spans must be of the same size");
@@ -33,7 +33,7 @@ public static class AudioConvert
 
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ConvertFloatTo16(Span<float> from, Span<short> to)
+    public static void ConvertFloatTo16(ReadOnlySpan<float> from, Span<short> to)
     {
         if (from.Length != to.Length)
             throw new InvalidOperationException("Spans must be of the same size");

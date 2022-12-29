@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace SFAudio;
+namespace SFAudioView;
 /// <summary>
 /// Interaction logic for App.xaml
 /// </summary>
