@@ -69,7 +69,7 @@ public partial class WaveformLogic : UserControl
 
         int clampedPos = Math.Clamp(samplePosition, 0, Audio.Data.Length / Audio.Channels);
 
-        double xpos = ActualWidth * clampedPos / Audio.Data.Length;
+        double xpos = ActualWidth * clampedPos * Audio.Channels / Audio.Data.Length;
 
         PlayPositionPolygon.Points.Clear();
         PlayPositionPolygon.Points.Add(new(xpos, 0));
@@ -101,21 +101,36 @@ public partial class WaveformLogic : UserControl
         var topPoints = new List<float>();
         var bottomPoints = new List<float>();
 
-        for (int i = sampleStart * Audio.Channels + TargetedChannel; i < sampleEnd * Audio.Channels; i += Audio.Channels)
+        // Safe version of this code is too slow
+        // Therefore unsafe code was used for sample rendering, yay!
+        unsafe
         {
-            minValue = Math.Min(minValue, renderedData[i]);
-            maxValue = Math.Max(maxValue, renderedData[i]);
-
-            samplesAccumulated++;
-
-            if (samplesAccumulated >= samplesPerPoint)
+            unchecked
             {
-                samplesAccumulated -= samplesPerPoint;
-                topPoints.Add(maxValue);
-                bottomPoints.Add(minValue);
+                int index = 0;
+                int count = (sampleEnd - sampleStart) * Audio.Channels;
 
-                minValue = float.MaxValue;
-                maxValue = float.MinValue;
+                fixed (float* data = &renderedData[sampleStart * Audio.Channels + TargetedChannel])
+                {
+                    while (index < count)
+                    {
+                        minValue = Math.Min(minValue, *(data + index));
+                        maxValue = Math.Max(maxValue, *(data + index));
+                        index++;
+
+                        samplesAccumulated++;
+
+                        if (samplesAccumulated >= samplesPerPoint)
+                        {
+                            samplesAccumulated -= samplesPerPoint;
+                            topPoints.Add(maxValue);
+                            bottomPoints.Add(minValue);
+
+                            minValue = float.MaxValue;
+                            maxValue = float.MinValue;
+                        }
+                    }
+                }
             }
         }
 
