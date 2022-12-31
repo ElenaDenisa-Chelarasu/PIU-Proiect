@@ -26,9 +26,15 @@ public partial class WaveformLogic : UserControl
     public static readonly DependencyProperty PlayPositionProperty
         = DependencyProperty.Register(nameof(PlayPosition), typeof(TimeSpan), typeof(WaveformLogic), new UIPropertyMetadata(TimeSpan.Zero, OnPropertyChanged));
 
+    public static readonly DependencyProperty RenderStartProperty
+        = DependencyProperty.Register(nameof(RenderStart), typeof(TimeSpan), typeof(WaveformLogic), new UIPropertyMetadata(TimeSpan.Zero, OnPropertyChanged));
+
+    public static readonly DependencyProperty RenderDurationProperty
+        = DependencyProperty.Register(nameof(RenderDuration), typeof(TimeSpan), typeof(WaveformLogic), new UIPropertyMetadata(TimeSpan.FromSeconds(60), OnPropertyChanged));
+
     public AudioInstance Audio
     {
-        get => (AudioInstance)GetValue(AudioProperty);
+        get => (AudioInstance)GetValue(AudioProperty); 
         set => SetValue(AudioProperty, value);
     }
 
@@ -42,6 +48,18 @@ public partial class WaveformLogic : UserControl
     {
         get => (TimeSpan)GetValue(PlayPositionProperty);
         set => SetValue(PlayPositionProperty, value);
+    }
+
+    public TimeSpan RenderStart
+    {
+        get => (TimeSpan)GetValue(RenderStartProperty);
+        set => SetValue(RenderStartProperty, value);
+    }
+
+    public TimeSpan RenderDuration
+    {
+        get => (TimeSpan)GetValue(RenderDurationProperty);
+        set => SetValue(RenderDurationProperty, value);
     }
 
     public WaveformLogic()
@@ -62,44 +80,56 @@ public partial class WaveformLogic : UserControl
 
     private void UpdatePlayPosition()
     {
-        if (Audio.Channels == 0 || ActualWidth == 0)
+        if (Audio.Channels == 0 || MainCanvas.ActualWidth == 0)
             return;
 
-        int samplePosition = (int)(PlayPosition.TotalSeconds * Audio.SampleRate);
+        TimeSpan clampedPosition = TimeSpan.FromSeconds(Math.Clamp(PlayPosition.TotalSeconds - RenderStart.TotalSeconds, 0, RenderDuration.TotalSeconds));
 
-        int clampedPos = Math.Clamp(samplePosition, 0, Audio.Data.Length / Audio.Channels);
-
-        double xpos = ActualWidth * clampedPos * Audio.Channels / Audio.Data.Length;
+        double xpos = MainCanvas.ActualWidth * clampedPosition / RenderDuration;
 
         PlayPositionPolygon.Points.Clear();
         PlayPositionPolygon.Points.Add(new(xpos, 0));
-        PlayPositionPolygon.Points.Add(new(xpos, ActualHeight));
-        PlayPositionPolygon.Points.Add(new(xpos + 1, ActualHeight));
+        PlayPositionPolygon.Points.Add(new(xpos, MainCanvas.ActualHeight));
+        PlayPositionPolygon.Points.Add(new(xpos + 1, MainCanvas.ActualHeight));
         PlayPositionPolygon.Points.Add(new(xpos + 1, 0));
     }
 
     private void UpdateWaveform()
     {
-        if (Audio.Channels == 0 || ActualWidth == 0)
+        // CACHE THE GODDAMN DEPENDENCY PROPERTY VALUE OR THE VALUES YOU GET FROM IT
+        // OTHERWISE THE PERFORMANCE GOES TO SHIT BECAUSE YOU KEEP CALLING FRAMEWORK METHODS IN THE HOT PATH LOOP
+        AudioInstance cachedAudio = Audio;
+        double actualHeight = MainCanvas.ActualHeight;
+        double actualWidth = MainCanvas.ActualWidth;
+
+        if (cachedAudio.Channels == 0 || MainCanvas.ActualWidth == 0)
             return;
 
-        WaveformPolygon.Points.Clear();
+        // Not all of the sample data is available in the given portion
+        // The Render region is the time that should be rendered, the actual sample available may be a fraction of that region
 
-        int sampleStart = 0;
-        int sampleEnd = Audio.Data.Length / Audio.Channels;
-        ReadOnlySpan<float> renderedData = Audio.Data.Span;
 
+        int sampleStartDesired = (int)(RenderStart.TotalSeconds * cachedAudio.SampleRate);
+        int samplesDesired = (int)(RenderDuration.TotalSeconds * cachedAudio.SampleRate);
+        int sampleEndDesired = sampleStartDesired + samplesDesired;
+
+        int sampleStart = Math.Clamp(sampleStartDesired, 0, cachedAudio.SampleCount);
+        int sampleEnd = Math.Clamp(sampleEndDesired, 0, cachedAudio.SampleCount);
         int samples = sampleEnd - sampleStart;
 
-        int samplesPerPoint = (int)(samples / ActualWidth + 1);
+        ReadOnlySpan<float> renderedData = cachedAudio.Data.Span;
+
+        int samplesPerPoint = (int)(samplesDesired / actualWidth);
 
         float minValue = float.MaxValue;
         float maxValue = float.MinValue;
 
         int samplesAccumulated = 0;
 
-        var topPoints = new List<float>();
-        var bottomPoints = new List<float>();
+        int pointCount = samples / samplesPerPoint;
+
+        var topPoints = new float[pointCount];
+        var bottomPoints = new float[pointCount];
 
         // Safe version of this code is too slow
         // Therefore unsafe code was used for sample rendering, yay!
@@ -108,23 +138,25 @@ public partial class WaveformLogic : UserControl
             unchecked
             {
                 int index = 0;
-                int count = (sampleEnd - sampleStart) * Audio.Channels;
-
-                fixed (float* data = &renderedData[sampleStart * Audio.Channels + TargetedChannel])
+                int renderedPointIndex = 0;
+                int count = samples * cachedAudio.Channels;
+                
+                fixed (float* data = &renderedData[sampleStart * cachedAudio.Channels + TargetedChannel])
                 {
                     while (index < count)
                     {
                         minValue = Math.Min(minValue, *(data + index));
                         maxValue = Math.Max(maxValue, *(data + index));
-                        index++;
+                        index += cachedAudio.Channels;
 
                         samplesAccumulated++;
 
                         if (samplesAccumulated >= samplesPerPoint)
                         {
                             samplesAccumulated -= samplesPerPoint;
-                            topPoints.Add(maxValue);
-                            bottomPoints.Add(minValue);
+                            topPoints[renderedPointIndex] = maxValue;
+                            bottomPoints[renderedPointIndex] = minValue;
+                            renderedPointIndex++;
 
                             minValue = float.MaxValue;
                             maxValue = float.MinValue;
@@ -134,21 +166,40 @@ public partial class WaveformLogic : UserControl
             }
         }
 
-        double xstep = ActualWidth / (samples / samplesPerPoint);
+        double xstep = actualWidth / (samplesDesired / (float)samplesPerPoint);
 
-        double xpos = 0;
+        double xpos = (sampleStartDesired - sampleStart) * xstep;
 
-        foreach (var strength in topPoints)
+        var points = new PointCollection(pointCount);
+
+        unsafe
         {
-            WaveformPolygon.Points.Add(new Point(xpos, ActualHeight * (1.0 - strength) / 2.0));
-            xpos += xstep;
+            int index = 0;
+
+            fixed (float* strength = topPoints)
+            {
+                while (index < pointCount)
+                {
+                    points.Add(new Point(xpos, actualHeight * (1.0 - *(strength + index)) / 2.0));
+                    xpos += xstep;
+                    index++;
+                }
+            }
+
+            index = pointCount - 1;
+
+            fixed (float* strength = bottomPoints)
+            {
+                while (index > 0)
+                {
+                    xpos -= xstep;
+                    points.Add(new Point(xpos, actualHeight * (1.0 - *(strength + index)) / 2.0));
+                    index--;
+                }
+            }
         }
 
-        foreach (var strength in bottomPoints.AsEnumerable().Reverse())
-        {
-            xpos -= xstep;
-            WaveformPolygon.Points.Add(new Point(xpos, ActualHeight * (1.0 - strength) / 2.0));
-        }
+        WaveformPolygon.Points = points;
     }
 
     private void UserControl_SizeChanged(object sender, SizeChangedEventArgs e)

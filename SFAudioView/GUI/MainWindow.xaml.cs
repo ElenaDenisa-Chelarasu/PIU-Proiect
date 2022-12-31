@@ -37,6 +37,10 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
+    public event EventHandler<WrappedValueEvent<string>>? FileOpened;
+    public event EventHandler<WrappedValueEvent<string>>? FileSaved;
+    public event EventHandler<WrappedValueEvent<AudioInstance>>? TrackRemoved;
+
     /// <summary>
     /// Deschide un fisier de tip wav si ruleaza impicit
     /// TO DO: Sa nu se randeze implicit, ci doar sa deschida si sa salveze acest state, 
@@ -52,7 +56,7 @@ public partial class MainWindow : Window
         if (open.ShowDialog() != true)
             return;
 
-        ((AppViewModel)DataContext).LoadNewTrack(open.FileName);
+        FileOpened?.Invoke(this, new(open.FileName));
     }
 
     private void saveMenuItem_Click(object sender, RoutedEventArgs e)
@@ -65,9 +69,7 @@ public partial class MainWindow : Window
         if (save.ShowDialog() != true || save.FileName == "")
             return;
 
-        using var buffer = new SoundBuffer(((AppViewModel)DataContext).SaveAudio(), 2, 44100);
-
-        buffer.SaveToFile(save.FileName);
+        FileSaved?.Invoke(this, new(save.FileName));
     }
 
     private void aboutMenuItem_Click(object sender, RoutedEventArgs e)
@@ -90,19 +92,14 @@ public partial class MainWindow : Window
         if (save.ShowDialog() != true || save.FileName == "")
             return;
 
-        using var buffer = new SoundBuffer(((AppViewModel)DataContext).SaveAudio(), 2, 44100);
-
-        buffer.SaveToFile(save.FileName);
+        FileSaved?.Invoke(this, new(save.FileName));
     }
 
     private void OnTrackRemoved(object? sender, EventArgs e)
     {
         if (sender is AudioTrack audioTrack)
         {
-            var audio = audioTrack.Audio;
-
-            if (audio != null)
-                ((AppViewModel)DataContext).RemoveAudioTrack(audio);
+            TrackRemoved?.Invoke(this, new(audioTrack.Audio));
         }
     }
 }

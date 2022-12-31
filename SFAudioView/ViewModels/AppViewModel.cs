@@ -1,6 +1,7 @@
 ﻿using Prism.Commands;
 using SFAudioCore.DataTypes;
 using SFAudioView.GUI;
+using SFML.Audio;
 using System;
 using System.Collections.ObjectModel;
 using System.Windows;
@@ -20,6 +21,9 @@ public class AppViewModel : ViewModelBase
     public DelegateCommand<RoutedEventArgs> SkipLeftCommand { get; }
     public DelegateCommand<RoutedEventArgs> SkipRightCommand { get; }
     public DelegateCommand<RoutedEventArgs> ToggleCommand { get; }
+    public DelegateCommand<WrappedValueEvent<string>> FileOpenCommand { get; }
+    public DelegateCommand<WrappedValueEvent<string>> FileSaveCommand { get; }
+    public DelegateCommand<WrappedValueEvent<AudioInstance>> TrackRemovedCommand { get; }
 
     // The wrapped model
     private AudioEngine Engine { get; } = new();
@@ -41,6 +45,9 @@ public class AppViewModel : ViewModelBase
         SkipLeftCommand = new((e) => SkipLeft());
         SkipRightCommand = new((e) => SkipRight());
         ToggleCommand = new((e) => ToggleLoop());
+        FileOpenCommand = new((e) => LoadNewTrack(e.Value));
+        FileSaveCommand = new((e) => SaveAudio(e.Value));
+        TrackRemovedCommand = new((e) => RemoveAudioTrack(e.Value));
     }
 
     public ObservableCollection<AudioInstance> AudioTracks { get; } = new();
@@ -79,14 +86,16 @@ public class AppViewModel : ViewModelBase
     public void SkipRight() => Engine.TimePosition += GetSkipTimeAmount();
     public void ToggleLoop() => Engine.Loop = !Engine.Loop;
 
-    public short[] SaveAudio()
+    public void SaveAudio(string path)
     {
         var temp_samples = Engine.Render(TimeSpan.Zero, Engine.Duration);
 
         var samples = new short[temp_samples.Length];
         AudioConvert.ConvertFloatTo16(temp_samples, samples);
 
-        return samples;
+        using var buffer = new SoundBuffer(samples, 2, 44100);
+
+        buffer.SaveToFile(path);
     }
 
     public void LoadNewTrack(string path)
@@ -97,12 +106,17 @@ public class AppViewModel : ViewModelBase
 
         Engine.AddAudio(audio);
         AudioTracks.Add(audio);
+        Notify(nameof(RenderStart));
+        Notify(nameof(RenderDuration));
     }
 
     public void RemoveAudioTrack(AudioInstance audio)
     {
         Engine.RemoveAudio(audio);
         AudioTracks.Remove(audio);
+
+        Notify(nameof(RenderStart));
+        Notify(nameof(RenderDuration));
     }
 
     public TimeSpan TotalDuration => Engine.Duration;
@@ -126,5 +140,51 @@ public class AppViewModel : ViewModelBase
             return baseTime * 2;
 
         return baseTime;
+    }
+
+    public double ScrollZoom
+    {
+        get => _scrollZoom;
+        set 
+        { 
+            _scrollZoom = Math.Clamp(value, 1f, 5f); 
+            Notify();
+            Notify(nameof(RenderStart));
+            Notify(nameof(RenderDuration));
+        }
+    }
+    private double _scrollZoom = 3.5;
+
+    public double ScrollPosition
+    {
+        get => _scrollPosition;
+        set
+        {
+            _scrollPosition = Math.Clamp(value, 0f, 1f);
+            Notify();
+            Notify(nameof(RenderStart));
+            Notify(nameof(RenderDuration));
+        }
+    }
+    private double _scrollPosition = 0;
+
+
+    public TimeSpan RenderStart => (Engine.Duration - RenderDuration) * _scrollPosition;
+    public TimeSpan RenderDuration
+    {
+        get
+        {
+            TimeSpan baseValue = _scrollZoom switch
+            {
+                < 1 => TimeSpan.FromMilliseconds(500),
+                >= 1 and < 2 => TimeSpan.FromMilliseconds(500 + 499 * (_scrollZoom - 1)),
+                >= 2 and < 3 => TimeSpan.FromSeconds(1 + 59 * (_scrollZoom - 2)),
+                >= 3 and < 4 => TimeSpan.FromMinutes(1 + 59 * (_scrollZoom - 3)),
+                >= 4 => TimeSpan.FromHours(1),
+                _ => TimeSpan.FromSeconds(1)
+            };
+
+            return TimeSpan.FromSeconds(Math.Clamp(baseValue.TotalSeconds, 0, Engine.Duration.TotalSeconds));
+        }
     }
 }

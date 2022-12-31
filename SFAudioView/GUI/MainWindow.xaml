@@ -23,6 +23,18 @@
         </ResourceDictionary>
     </Window.Resources>
 
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="FileOpened">
+            <i:InvokeCommandAction Command="{Binding FileOpenCommand}" PassEventArgsToCommand="True"/>
+        </i:EventTrigger>
+        <i:EventTrigger EventName="FileSaved">
+            <i:InvokeCommandAction Command="{Binding FileSaveCommand}" PassEventArgsToCommand="True"/>
+        </i:EventTrigger>
+        <i:EventTrigger EventName="TrackRemoved">
+            <i:InvokeCommandAction Command="{Binding TrackRemovedCommand}" PassEventArgsToCommand="True"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem x:Name="fileMenuItem" Header="File">
@@ -145,10 +157,26 @@
                 <TextBlock Text=" | "/>
                 <TextBlock Name="LoopingTextBlock" Text="{Binding LoopingText}"/>
             </StackPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="4*"/>
+                </Grid.ColumnDefinitions>
+                <!-- Zoom slider -->
+                <Slider Grid.Column="0" TickFrequency="1" TickPlacement="BottomRight" Minimum="1" Maximum="5" Value="{Binding ScrollZoom}"/>
+                
+                <!-- Scroll slider -->
+                <Slider Grid.Column="1" TickFrequency="0.01" TickPlacement="BottomRight" Minimum="0" Maximum="1" Value="{Binding ScrollPosition}"/>
+            </Grid>
             <ItemsControl Name="AudioTrackItems" ItemsSource="{Binding AudioTracks}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <g:AudioTrack TrackRemoved="OnTrackRemoved" Audio="{Binding .}" PlayPosition="{Binding Path=DataContext.PlayPosition, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=g:MainWindow}}"/>
+                        <g:AudioTrack 
+                            TrackRemoved="OnTrackRemoved" Audio="{Binding .}" 
+                            PlayPosition="{Binding Path=DataContext.PlayPosition, Mode=OneWay, RelativeSource={RelativeSource AncestorType=g:MainWindow}}"
+                            RenderStart="{Binding Path=DataContext.RenderStart, Mode=OneWay, RelativeSource={RelativeSource AncestorType=g:MainWindow}}"
+                            RenderDuration="{Binding Path=DataContext.RenderDuration, Mode=OneWay, RelativeSource={RelativeSource AncestorType=g:MainWindow}}"
+                            />
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

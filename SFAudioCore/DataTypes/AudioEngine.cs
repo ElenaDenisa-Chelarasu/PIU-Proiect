@@ -267,7 +267,6 @@ public class AudioEngine
             if (audio.Channels == 2)
             {
                 // There are two values for each sample
-                // -1f = full left, 1f = full right
 
                 unsafe
                 {

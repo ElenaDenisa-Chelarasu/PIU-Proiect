@@ -28,6 +28,12 @@ public partial class AudioTrack : UserControl
     public static readonly DependencyProperty PlayPositionProperty
         = DependencyProperty.Register(nameof(PlayPosition), typeof(TimeSpan), typeof(AudioTrack), new UIPropertyMetadata(TimeSpan.Zero));
 
+    public static readonly DependencyProperty RenderStartProperty
+        = DependencyProperty.Register(nameof(RenderStart), typeof(TimeSpan), typeof(AudioTrack), new UIPropertyMetadata(TimeSpan.Zero));
+
+    public static readonly DependencyProperty RenderDurationProperty
+        = DependencyProperty.Register(nameof(RenderDuration), typeof(TimeSpan), typeof(AudioTrack), new UIPropertyMetadata(TimeSpan.FromSeconds(60)));
+
     public AudioInstance Audio
     {
         get => (AudioInstance)GetValue(AudioProperty);
@@ -38,6 +44,18 @@ public partial class AudioTrack : UserControl
     {
         get => (TimeSpan)GetValue(PlayPositionProperty);
         set => SetValue(PlayPositionProperty, value);
+    }
+
+    public TimeSpan RenderStart
+    {
+        get => (TimeSpan)GetValue(RenderStartProperty);
+        set => SetValue(RenderStartProperty, value);
+    }
+
+    public TimeSpan RenderDuration
+    {
+        get => (TimeSpan)GetValue(RenderDurationProperty);
+        set => SetValue(RenderDurationProperty, value);
     }
 
     public AudioTrack()

@@ -83,8 +83,16 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <gui:WaveformLogic Grid.Row="0" x:Name="WaveformLeft" Audio="{Binding Audio, ElementName=Self}" TargetedChannel="0" PlayPosition="{Binding PlayPosition, Mode=TwoWay, ElementName=Self}"/>
-                <gui:WaveformLogic Grid.Row="1" x:Name="WaveformRight" Audio="{Binding Audio, ElementName=Self}" TargetedChannel="1" PlayPosition="{Binding PlayPosition, Mode=TwoWay, ElementName=Self}"/>
+                <gui:WaveformLogic Grid.Row="0" x:Name="WaveformLeft" Audio="{Binding Audio, ElementName=Self}" TargetedChannel="0" 
+                                   PlayPosition="{Binding PlayPosition, Mode=OneWay, ElementName=Self}"
+                                   RenderStart="{Binding RenderStart, Mode=OneWay, ElementName=Self}"
+                                   RenderDuration="{Binding RenderDuration, Mode=OneWay, ElementName=Self}"
+                                   />
+                <gui:WaveformLogic Grid.Row="1" x:Name="WaveformRight" Audio="{Binding Audio, ElementName=Self}" TargetedChannel="1"
+                                   PlayPosition="{Binding PlayPosition, Mode=OneWay, ElementName=Self}"
+                                   RenderStart="{Binding RenderStart, Mode=OneWay, ElementName=Self}"
+                                   RenderDuration="{Binding RenderDuration, Mode=OneWay, ElementName=Self}"
+                                   />
             </Grid>
         </Grid>
     </Border>
