@@ -102,7 +102,7 @@ public partial class WaveformLogic : UserControl
         double actualHeight = MainCanvas.ActualHeight;
         double actualWidth = MainCanvas.ActualWidth;
 
-        if (cachedAudio.Channels == 0 || MainCanvas.ActualWidth == 0)
+        if (cachedAudio.Channels == 0 || MainCanvas.ActualWidth == 0 || RenderDuration == TimeSpan.Zero)
             return;
 
         // Not all of the sample data is available in the given portion

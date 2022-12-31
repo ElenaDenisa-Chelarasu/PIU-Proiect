@@ -14,7 +14,7 @@
     <Window.DataContext>
         <vm:AppViewModel/>
     </Window.DataContext>
-    
+
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -159,14 +159,22 @@
             </StackPanel>
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1.5*"/>
                     <ColumnDefinition Width="4*"/>
                 </Grid.ColumnDefinitions>
-                <!-- Zoom slider -->
-                <Slider Grid.Column="0" TickFrequency="1" TickPlacement="BottomRight" Minimum="1" Maximum="5" Value="{Binding ScrollZoom}"/>
                 
+                <!-- Zoom slider -->
+                <Slider Grid.Column="0" TickFrequency="1" TickPlacement="BottomRight" IsSnapToTickEnabled="False" Minimum="1" Maximum="8" Value="{Binding ScrollZoom}"/>
+
                 <!-- Scroll slider -->
                 <Slider Grid.Column="1" TickFrequency="0.01" TickPlacement="BottomRight" Minimum="0" Maximum="1" Value="{Binding ScrollPosition}"/>
+
+                <!-- Time markers behind scroll slider -->
+                <g:PlayIndicator Grid.Column="1"
+                    PlayPosition="{Binding Path=PlayPosition, Mode=OneWay}"
+                    RenderStart="{Binding Path=RenderStart, Mode=OneWay}"
+                    RenderDuration="{Binding Path=RenderDuration, Mode=OneWay}"
+                    TotalDuration="{Binding Path=TotalDuration, Mode=OneWay}"/>
             </Grid>
             <ItemsControl Name="AudioTrackItems" ItemsSource="{Binding AudioTracks}">
                 <ItemsControl.ItemTemplate>

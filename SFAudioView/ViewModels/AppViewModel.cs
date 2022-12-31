@@ -37,6 +37,7 @@ public class AppViewModel : ViewModelBase
             Notify(nameof(DurationText));
             Notify(nameof(LoopingText));
             Notify(nameof(PlayPosition));
+            Notify(nameof(TotalDuration));
         };
 
         PlayCommand = new((e) => Play());
@@ -57,20 +58,6 @@ public class AppViewModel : ViewModelBase
     {
         get => _actionDescriptionText;
         set { _actionDescriptionText = value; Notify(); }
-    }
-
-    private TimeSpan _playRegionSize;
-    public TimeSpan PlayRegionSize
-    {
-        get => _playRegionSize;
-        set { _playRegionSize = value; Notify(); }
-    }
-
-    private TimeSpan _playRegionStart;
-    public TimeSpan PlayRegionStart
-    {
-        get => _playRegionStart;
-        set { _playRegionStart = value; Notify(); }
     }
 
     public TimeSpan PlayPosition
@@ -147,13 +134,13 @@ public class AppViewModel : ViewModelBase
         get => _scrollZoom;
         set 
         { 
-            _scrollZoom = Math.Clamp(value, 1f, 5f); 
+            _scrollZoom = Math.Clamp(value, 1f, 8f); 
             Notify();
             Notify(nameof(RenderStart));
             Notify(nameof(RenderDuration));
         }
     }
-    private double _scrollZoom = 3.5;
+    private double _scrollZoom = 5;
 
     public double ScrollPosition
     {
@@ -174,17 +161,37 @@ public class AppViewModel : ViewModelBase
     {
         get
         {
+            double ratio = _scrollZoom - Math.Floor(_scrollZoom);
+
+            TimeSpan T1 = TimeSpan.FromMilliseconds(50);
+            TimeSpan T2 = TimeSpan.FromMilliseconds(250);
+            TimeSpan T3 = TimeSpan.FromSeconds(1);
+            TimeSpan T4 = TimeSpan.FromSeconds(5);
+            TimeSpan T5 = TimeSpan.FromSeconds(25);
+            TimeSpan T6 = TimeSpan.FromMinutes(1);
+            TimeSpan T7 = TimeSpan.FromMinutes(5);
+            TimeSpan T8 = TimeSpan.FromMinutes(25);
+
             TimeSpan baseValue = _scrollZoom switch
             {
-                < 1 => TimeSpan.FromMilliseconds(500),
-                >= 1 and < 2 => TimeSpan.FromMilliseconds(500 + 499 * (_scrollZoom - 1)),
-                >= 2 and < 3 => TimeSpan.FromSeconds(1 + 59 * (_scrollZoom - 2)),
-                >= 3 and < 4 => TimeSpan.FromMinutes(1 + 59 * (_scrollZoom - 3)),
-                >= 4 => TimeSpan.FromHours(1),
-                _ => TimeSpan.FromSeconds(1)
+                < 1 => T1,
+                >= 1 and < 2 => Lerp(T1, T2, ratio),
+                >= 2 and < 3 => Lerp(T2, T3, ratio),
+                >= 3 and < 4 => Lerp(T3, T4, ratio),
+                >= 4 and < 5 => Lerp(T4, T5, ratio),
+                >= 5 and < 6 => Lerp(T5, T6, ratio),
+                >= 6 and < 7 => Lerp(T6, T7, ratio),
+                >= 7 and < 8 => Lerp(T7, T8, ratio),
+                >= 8 => T8,
+                _ => T8
             };
 
             return TimeSpan.FromSeconds(Math.Clamp(baseValue.TotalSeconds, 0, Engine.Duration.TotalSeconds));
         }
+    }
+
+    private static TimeSpan Lerp(TimeSpan a, TimeSpan b, double ratio)
+    {
+        return a * (1 - ratio) + b * ratio;
     }
 }
