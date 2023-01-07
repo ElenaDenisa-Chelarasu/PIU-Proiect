@@ -38,6 +38,9 @@
         <i:EventTrigger EventName="SelectionUpdated">
             <i:InvokeCommandAction Command="{Binding SelectionUpdateCommand}" PassEventArgsToCommand="True"/>
         </i:EventTrigger>
+        <i:EventTrigger EventName="EffectUnamplify">
+            <i:InvokeCommandAction Command="{Binding UnamplifySelectionCommand}" PassEventArgsToCommand="True"/>
+        </i:EventTrigger>
     </i:Interaction.Triggers>
 
     <DockPanel>
@@ -62,7 +65,7 @@
                 <!-- TODO Add more things -->
             </MenuItem>
             <MenuItem x:Name="effectsMenuItem" Header="Effects">
-                <!-- TODO Add more things -->
+                <MenuItem Header="Un-amplify" Click="MenuItem_Click"/>
             </MenuItem>
             <MenuItem x:Name="generateMenuItem" Header="Generate">
                 <MenuItem x:Name="silenceMenuItem" Header="Silence"/>

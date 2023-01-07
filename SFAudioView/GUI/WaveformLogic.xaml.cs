@@ -19,7 +19,7 @@ namespace SFAudioView.GUI;
 public partial class WaveformLogic : UserControl
 {
     public static readonly DependencyProperty AudioProperty
-        = DependencyProperty.Register(nameof(Audio), typeof(AudioInstance), typeof(WaveformLogic), new UIPropertyMetadata(new AudioInstance(Array.Empty<float>(), 2, 44100)));
+        = DependencyProperty.Register(nameof(Audio), typeof(AudioInstance), typeof(WaveformLogic), new UIPropertyMetadata(new AudioInstance(Array.Empty<float>(), 2, 44100), OnPropertyChanged));
 
     public static readonly DependencyProperty TargetedChannelProperty
         = DependencyProperty.Register(nameof(TargetedChannel), typeof(int), typeof(WaveformLogic), new UIPropertyMetadata(0, OnPropertyChanged));
@@ -103,7 +103,7 @@ public partial class WaveformLogic : UserControl
 
     private bool ShouldNotUpdate()
     {
-        return TargetedChannel >= Audio.Channels
+        return Audio == null || TargetedChannel >= Audio.Channels
             || MainCanvas.ActualWidth == 0
             || RenderDuration == TimeSpan.Zero;
     }

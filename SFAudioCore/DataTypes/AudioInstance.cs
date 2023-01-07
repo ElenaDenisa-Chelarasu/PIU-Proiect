@@ -105,6 +105,8 @@ public class AudioInstance : INotifyPropertyChanged
         Notify(nameof(SampleCount));
     }
 
+    public void Modify(ReadOnlySpan<float> data) => Modify(data, Channels, SampleRate);
+
     public SoundBuffer MakeBuffer()
     {
         short[] data = new short[Data.Length];

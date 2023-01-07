@@ -31,6 +31,7 @@ public class AppViewModel : ViewModelBase
     public DelegateCommand<WrappedValueEvent<string>> FileSaveCommand { get; }
     public DelegateCommand<WrappedValueEvent<AudioInstance>> TrackRemovedCommand { get; }
     public DelegateCommand<WrappedValueEvent<SelectionUpdate?>> SelectionUpdateCommand { get; }
+    public DelegateCommand<EventArgs> UnamplifySelectionCommand { get; }
 
     // The wrapped model
     private AudioEngine Engine { get; } = new();
@@ -57,6 +58,7 @@ public class AppViewModel : ViewModelBase
         FileSaveCommand = new((e) => SaveAudio(e.Value));
         TrackRemovedCommand = new((e) => RemoveAudioTrack(e.Value));
         SelectionUpdateCommand = new((e) => UpdateSelection(e.Value));
+        UnamplifySelectionCommand = new((e) => UnamplifySelection());
     }
 
     public ObservableCollection<AudioInstance> AudioTracks { get; } = new();
@@ -210,7 +212,7 @@ public class AppViewModel : ViewModelBase
     }
     private SelectionState? _selectionState;
 
-    public void UpdateSelection(SelectionUpdate? update)
+    private void UpdateSelection(SelectionUpdate? update)
     {
         if (update == null)
             SelectionState = null;
@@ -231,5 +233,27 @@ public class AppViewModel : ViewModelBase
                 SelectionState.Audio,
                 SelectionState.Channel);
         }
+    }
+
+    private void UnamplifySelection()
+    {
+        var state = SelectionState;
+
+        if (state is null || state.Audio is null)
+            return;
+
+        var audio = state.Audio;
+
+        var (start, end) = (state.FirstPoint, state.LastPoint);
+
+        if (state.FirstPoint > state.LastPoint)
+            (start, end) = (end, start);
+
+        int sampleStart = (int)(start.TotalSeconds * audio.SampleRate);
+        int sampleEnd = (int)(end.TotalSeconds * audio.SampleRate);
+
+        AudioEffects.Amplify(state.Audio, sampleStart, sampleEnd, 0.6f, state.Channel);
+
+        SelectionState = null;
     }
 }
