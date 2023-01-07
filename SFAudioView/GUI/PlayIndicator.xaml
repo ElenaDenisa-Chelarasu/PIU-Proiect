@@ -7,6 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Canvas Name="PlayIndicatorCanvas" Grid.Column="1">
+        <Polygon Name="SelectionPoly" Fill="#32FFFF00" Stroke="#B0FF0000" StrokeThickness="1"/>
         <Polygon Name="PlayPositionPoly" Stroke="#80000000" StrokeThickness="1"/>
         <Polygon Name="PlayAreaPoly" Stroke="#80000000" StrokeThickness="1"/>
     </Canvas>

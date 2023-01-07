@@ -87,11 +87,15 @@
                                    PlayPosition="{Binding PlayPosition, Mode=OneWay, ElementName=Self}"
                                    RenderStart="{Binding RenderStart, Mode=OneWay, ElementName=Self}"
                                    RenderDuration="{Binding RenderDuration, Mode=OneWay, ElementName=Self}"
+                                   SelectionStarted="WaveformLeft_SelectionStarted"
+                                   SelectionUpdated="WaveformLeft_SelectionUpdated"
                                    />
                 <gui:WaveformLogic Grid.Row="1" x:Name="WaveformRight" Audio="{Binding Audio, ElementName=Self}" TargetedChannel="1"
                                    PlayPosition="{Binding PlayPosition, Mode=OneWay, ElementName=Self}"
                                    RenderStart="{Binding RenderStart, Mode=OneWay, ElementName=Self}"
                                    RenderDuration="{Binding RenderDuration, Mode=OneWay, ElementName=Self}"
+                                   SelectionStarted="WaveformLeft_SelectionStarted"
+                                   SelectionUpdated="WaveformLeft_SelectionUpdated"
                                    />
             </Grid>
         </Grid>

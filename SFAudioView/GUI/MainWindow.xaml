@@ -1,15 +1,17 @@
-﻿<Window x:Class="SFAudioView.GUI.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vm="clr-namespace:SFAudioView.ViewModels"
-        xmlns:g="clr-namespace:SFAudioView.GUI" xmlns:i="http://schemas.microsoft.com/xaml/behaviors" xmlns:datatypes="clr-namespace:SFAudioCore.DataTypes;assembly=SFAudioCore"
-        mc:Ignorable="d"
-        Title="MainWindow"
-        Height="450"
-        Width="800"
-        WindowStartupLocation="CenterScreen">
+﻿<g:GlobalAudioSelectionWindowBase x:Class="SFAudioView.GUI.MainWindow"
+                                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                                  xmlns:vm="clr-namespace:SFAudioView.ViewModels"
+                                  xmlns:g="clr-namespace:SFAudioView.GUI" xmlns:i="http://schemas.microsoft.com/xaml/behaviors" xmlns:datatypes="clr-namespace:SFAudioCore.DataTypes;assembly=SFAudioCore"
+                                  mc:Ignorable="d"
+                                  Title="MainWindow"
+                                  Height="450"
+                                  Width="800"
+                                  WindowStartupLocation="CenterScreen"
+                                  SelectionState="{Binding SelectionState, Mode=TwoWay}"
+                                  SelectionStateUpdated="GlobalAudioSelectionWindowBase_SelectionStateUpdated">
 
     <Window.DataContext>
         <vm:AppViewModel/>
@@ -32,6 +34,9 @@
         </i:EventTrigger>
         <i:EventTrigger EventName="TrackRemoved">
             <i:InvokeCommandAction Command="{Binding TrackRemovedCommand}" PassEventArgsToCommand="True"/>
+        </i:EventTrigger>
+        <i:EventTrigger EventName="SelectionUpdated">
+            <i:InvokeCommandAction Command="{Binding SelectionUpdateCommand}" PassEventArgsToCommand="True"/>
         </i:EventTrigger>
     </i:Interaction.Triggers>
 
@@ -162,6 +167,15 @@
                     <ColumnDefinition Width="1.5*"/>
                     <ColumnDefinition Width="4*"/>
                 </Grid.ColumnDefinitions>
+
+                <!-- Time markers behind scroll slider -->
+                <g:PlayIndicator Grid.Column="1"
+                    PlayPosition="{Binding Path=PlayPosition, Mode=OneWay}"
+                    RenderStart="{Binding Path=RenderStart, Mode=OneWay}"
+                    RenderDuration="{Binding Path=RenderDuration, Mode=OneWay}"
+                    TotalDuration="{Binding Path=TotalDuration, Mode=OneWay}"
+                    SelectionFirstPoint="{Binding Path=SelectionState.FirstPoint, Mode=OneWay}"
+                    SelectionLastPoint="{Binding Path=SelectionState.LastPoint, Mode=OneWay}"/>
                 
                 <!-- Zoom slider -->
                 <Slider Grid.Column="0" TickFrequency="1" TickPlacement="BottomRight" IsSnapToTickEnabled="False" Minimum="1" Maximum="8" Value="{Binding ScrollZoom}"/>
@@ -169,12 +183,6 @@
                 <!-- Scroll slider -->
                 <Slider Grid.Column="1" TickFrequency="0.01" TickPlacement="BottomRight" Minimum="0" Maximum="1" Value="{Binding ScrollPosition}"/>
 
-                <!-- Time markers behind scroll slider -->
-                <g:PlayIndicator Grid.Column="1"
-                    PlayPosition="{Binding Path=PlayPosition, Mode=OneWay}"
-                    RenderStart="{Binding Path=RenderStart, Mode=OneWay}"
-                    RenderDuration="{Binding Path=RenderDuration, Mode=OneWay}"
-                    TotalDuration="{Binding Path=TotalDuration, Mode=OneWay}"/>
             </Grid>
             <ItemsControl Name="AudioTrackItems" ItemsSource="{Binding AudioTracks}">
                 <ItemsControl.ItemTemplate>
@@ -184,10 +192,12 @@
                             PlayPosition="{Binding Path=DataContext.PlayPosition, Mode=OneWay, RelativeSource={RelativeSource AncestorType=g:MainWindow}}"
                             RenderStart="{Binding Path=DataContext.RenderStart, Mode=OneWay, RelativeSource={RelativeSource AncestorType=g:MainWindow}}"
                             RenderDuration="{Binding Path=DataContext.RenderDuration, Mode=OneWay, RelativeSource={RelativeSource AncestorType=g:MainWindow}}"
+                            SelectionStarted="AudioTrack_SelectionStarted"
+                            SelectionUpdated="AudioTrack_SelectionUpdated"
                             />
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </StackPanel>
     </DockPanel>
-</Window>
+</g:GlobalAudioSelectionWindowBase>

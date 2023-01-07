@@ -10,6 +10,12 @@ using System.Windows.Media;
 
 namespace SFAudioView.ViewModels;
 
+public record SelectionState(
+    TimeSpan FirstPoint,
+    TimeSpan LastPoint,
+    AudioInstance? Audio,
+    int? Channel);
+
 /// <summary>
 /// Contains business logic for main window.
 /// </summary>
@@ -24,6 +30,7 @@ public class AppViewModel : ViewModelBase
     public DelegateCommand<WrappedValueEvent<string>> FileOpenCommand { get; }
     public DelegateCommand<WrappedValueEvent<string>> FileSaveCommand { get; }
     public DelegateCommand<WrappedValueEvent<AudioInstance>> TrackRemovedCommand { get; }
+    public DelegateCommand<WrappedValueEvent<SelectionUpdate?>> SelectionUpdateCommand { get; }
 
     // The wrapped model
     private AudioEngine Engine { get; } = new();
@@ -49,6 +56,7 @@ public class AppViewModel : ViewModelBase
         FileOpenCommand = new((e) => LoadNewTrack(e.Value));
         FileSaveCommand = new((e) => SaveAudio(e.Value));
         TrackRemovedCommand = new((e) => RemoveAudioTrack(e.Value));
+        SelectionUpdateCommand = new((e) => UpdateSelection(e.Value));
     }
 
     public ObservableCollection<AudioInstance> AudioTracks { get; } = new();
@@ -193,5 +201,35 @@ public class AppViewModel : ViewModelBase
     private static TimeSpan Lerp(TimeSpan a, TimeSpan b, double ratio)
     {
         return a * (1 - ratio) + b * ratio;
+    }
+
+    public SelectionState? SelectionState
+    {
+        get => _selectionState;
+        set { _selectionState = value; Notify(); }
+    }
+    private SelectionState? _selectionState;
+
+    public void UpdateSelection(SelectionUpdate? update)
+    {
+        if (update == null)
+            SelectionState = null;
+
+        else if (update.IsFirstPoint)
+        {
+            SelectionState = new(
+                update.Point,
+                update.Point,
+                update.Audio,
+                update.Channel);
+        }
+        else if (SelectionState is not null)
+        {
+            SelectionState = new(
+                SelectionState.FirstPoint,
+                update.Point,
+                SelectionState.Audio,
+                SelectionState.Channel);
+        }
     }
 }

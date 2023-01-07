@@ -27,10 +27,16 @@ using SFAudioView.ViewModels;
 
 namespace SFAudioView.GUI;
 
+public record SelectionUpdate(
+    TimeSpan Point,
+    bool IsFirstPoint,
+    AudioInstance Audio,
+    int? Channel);
+
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
-public partial class MainWindow : Window
+public partial class MainWindow : GlobalAudioSelectionWindowBase
 {
     public MainWindow()
     {
@@ -40,6 +46,7 @@ public partial class MainWindow : Window
     public event EventHandler<WrappedValueEvent<string>>? FileOpened;
     public event EventHandler<WrappedValueEvent<string>>? FileSaved;
     public event EventHandler<WrappedValueEvent<AudioInstance>>? TrackRemoved;
+    public event EventHandler<WrappedValueEvent<SelectionUpdate?>>? SelectionUpdated;
 
     /// <summary>
     /// Deschide un fisier de tip wav si ruleaza impicit
@@ -101,5 +108,102 @@ public partial class MainWindow : Window
         {
             TrackRemoved?.Invoke(this, new(audioTrack.Audio));
         }
+    }
+
+    private void AudioTrack_SelectionStarted(object sender, WrappedValueEvent<TimeSpan> e)
+    {
+        if (sender is not WaveformLogic waveform)
+            return;
+
+        var arg = new SelectionUpdate(
+            e.Value,
+            true,
+            waveform.Audio,
+            Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? null : waveform.TargetedChannel
+            );
+
+        SelectionUpdated?.Invoke(this, new WrappedValueEvent<SelectionUpdate?>(arg));
+    }
+
+    private void AudioTrack_SelectionUpdated(object sender, WrappedValueEvent<TimeSpan> e)
+    {
+        if (sender is not WaveformLogic waveform)
+            return;
+
+        var arg = new SelectionUpdate(
+            e.Value,
+            false,
+            waveform.Audio,
+            Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? null : waveform.TargetedChannel
+            );
+
+        SelectionUpdated?.Invoke(this, new WrappedValueEvent<SelectionUpdate?>(arg));
+    }
+
+    private void GlobalAudioSelectionWindowBase_SelectionStateUpdated(object sender, WrappedValueEvent<SelectionState?> e)
+    {
+        var state = e.Value;
+
+        foreach (var item in AudioTrackItems.Items)
+        {
+            var control = AudioTrackItems.ItemContainerGenerator.ContainerFromItem(item);
+            var track = FindVisualChild<AudioTrack>(control);
+
+            if (track != null)
+            {
+                if (state == null || track.Audio != state.Audio)
+                {
+                    track.WaveformLeft.SelectionFirstPoint = TimeSpan.Zero;
+                    track.WaveformLeft.SelectionLastPoint = TimeSpan.Zero;
+                    track.WaveformRight.SelectionFirstPoint = TimeSpan.Zero;
+                    track.WaveformRight.SelectionLastPoint = TimeSpan.Zero;
+                }
+                else
+                {
+                    var both = state.Channel == null;
+
+                    if (both || state.Channel == track.WaveformLeft.TargetedChannel)
+                    {
+                        track.WaveformLeft.SelectionFirstPoint = state.FirstPoint;
+                        track.WaveformLeft.SelectionLastPoint = state.LastPoint;
+                    }
+                    else
+                    {
+                        track.WaveformLeft.SelectionFirstPoint = TimeSpan.Zero;
+                        track.WaveformLeft.SelectionLastPoint = TimeSpan.Zero;
+                    }
+
+                    if (both || state.Channel == track.WaveformRight.TargetedChannel)
+                    {
+                        track.WaveformRight.SelectionFirstPoint = state.FirstPoint;
+                        track.WaveformRight.SelectionLastPoint = state.LastPoint;
+                    }
+                    else
+                    {
+                        track.WaveformRight.SelectionFirstPoint = TimeSpan.Zero;
+                        track.WaveformRight.SelectionLastPoint = TimeSpan.Zero;
+                    }
+                }
+            }
+        }
+    }
+
+    public static T? FindVisualChild<T>(DependencyObject? depObj) where T : DependencyObject
+    {
+        if (depObj != null)
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(depObj); i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(depObj, i);
+                if (child != null && child is T)
+                {
+                    return (T)child;
+                }
+
+                T? childItem = FindVisualChild<T>(child);
+                if (childItem != null) return childItem;
+            }
+        }
+        return null;
     }
 }

@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Input.StylusPlugIns;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -31,6 +32,12 @@ public partial class WaveformLogic : UserControl
 
     public static readonly DependencyProperty RenderDurationProperty
         = DependencyProperty.Register(nameof(RenderDuration), typeof(TimeSpan), typeof(WaveformLogic), new UIPropertyMetadata(TimeSpan.FromSeconds(60), OnPropertyChanged));
+
+    public static readonly DependencyProperty SelectionFirstPointProperty
+        = DependencyProperty.Register(nameof(SelectionFirstPoint), typeof(TimeSpan), typeof(WaveformLogic), new UIPropertyMetadata(TimeSpan.FromSeconds(0), OnPropertyChanged));
+
+    public static readonly DependencyProperty SelectionLastPointProperty
+        = DependencyProperty.Register(nameof(SelectionLastPoint), typeof(TimeSpan), typeof(WaveformLogic), new UIPropertyMetadata(TimeSpan.FromSeconds(0), OnPropertyChanged));
 
     public AudioInstance Audio
     {
@@ -62,6 +69,21 @@ public partial class WaveformLogic : UserControl
         set => SetValue(RenderDurationProperty, value);
     }
 
+    public TimeSpan SelectionFirstPoint
+    {
+        get => (TimeSpan)GetValue(SelectionFirstPointProperty);
+        set => SetValue(SelectionFirstPointProperty, value);
+    }
+
+    public TimeSpan SelectionLastPoint
+    {
+        get => (TimeSpan)GetValue(SelectionLastPointProperty);
+        set => SetValue(SelectionLastPointProperty, value);
+    }
+
+    public event EventHandler<WrappedValueEvent<TimeSpan>>? SelectionStarted;
+    public event EventHandler<WrappedValueEvent<TimeSpan>>? SelectionUpdated;
+
     public WaveformLogic()
     {
         InitializeComponent();
@@ -72,15 +94,46 @@ public partial class WaveformLogic : UserControl
         if (d is WaveformLogic waveform)
         {
             waveform.UpdatePlayPosition();
+            waveform.UpdateSelection();
 
             if (e.Property != PlayPositionProperty)
                 waveform.UpdateWaveform();
         }
     }
 
+    private bool ShouldNotUpdate()
+    {
+        return TargetedChannel >= Audio.Channels
+            || MainCanvas.ActualWidth == 0
+            || RenderDuration == TimeSpan.Zero;
+    }
+
+    private void UpdateSelection()
+    {
+        if (ShouldNotUpdate())
+            return;
+
+        (var selectionStart, var selectionEnd) = (SelectionFirstPoint, SelectionLastPoint);
+
+        if (SelectionFirstPoint > SelectionLastPoint)
+            (selectionStart, selectionEnd) = (selectionEnd, selectionStart);
+
+        TimeSpan clampedStart = TimeSpan.FromSeconds(Math.Clamp(selectionStart.TotalSeconds - RenderStart.TotalSeconds, 0, RenderDuration.TotalSeconds));
+        TimeSpan clampedEnd = TimeSpan.FromSeconds(Math.Clamp(selectionEnd.TotalSeconds - RenderStart.TotalSeconds, 0, RenderDuration.TotalSeconds));
+
+        double xposStart = MainCanvas.ActualWidth * clampedStart / RenderDuration;
+        double xposEnd = MainCanvas.ActualWidth * clampedEnd / RenderDuration;
+
+        SelectionPolygon.Points.Clear();
+        SelectionPolygon.Points.Add(new(xposStart, 0));
+        SelectionPolygon.Points.Add(new(xposStart, MainCanvas.ActualHeight));
+        SelectionPolygon.Points.Add(new(xposEnd, MainCanvas.ActualHeight));
+        SelectionPolygon.Points.Add(new(xposEnd, 0));
+    }
+
     private void UpdatePlayPosition()
     {
-        if (Audio.Channels == 0 || MainCanvas.ActualWidth == 0)
+        if (ShouldNotUpdate())
             return;
 
         TimeSpan clampedPosition = TimeSpan.FromSeconds(Math.Clamp(PlayPosition.TotalSeconds - RenderStart.TotalSeconds, 0, RenderDuration.TotalSeconds));
@@ -96,14 +149,15 @@ public partial class WaveformLogic : UserControl
 
     private void UpdateWaveform()
     {
+        if (ShouldNotUpdate())
+            return;
+
         // CACHE THE GODDAMN DEPENDENCY PROPERTY VALUE OR THE VALUES YOU GET FROM IT
         // OTHERWISE THE PERFORMANCE GOES TO SHIT BECAUSE YOU KEEP CALLING FRAMEWORK METHODS IN THE HOT PATH LOOP
         AudioInstance cachedAudio = Audio;
         double actualHeight = MainCanvas.ActualHeight;
         double actualWidth = MainCanvas.ActualWidth;
 
-        if (cachedAudio.Channels == 0 || MainCanvas.ActualWidth == 0 || RenderDuration == TimeSpan.Zero)
-            return;
 
         // Not all of the sample data is available in the given portion
         // The Render region is the time that should be rendered, the actual sample available may be a fraction of that region
@@ -116,6 +170,9 @@ public partial class WaveformLogic : UserControl
         int sampleStart = Math.Clamp(sampleStartDesired, 0, cachedAudio.SampleCount);
         int sampleEnd = Math.Clamp(sampleEndDesired, 0, cachedAudio.SampleCount);
         int samples = sampleEnd - sampleStart;
+
+        if (samples == 0)
+            return;
 
         ReadOnlySpan<float> renderedData = cachedAudio.Data.Span;
 
@@ -206,5 +263,45 @@ public partial class WaveformLogic : UserControl
     {
         UpdatePlayPosition();
         UpdateWaveform();
+        UpdatePlayPosition();
+    }
+
+    private void UserControl_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (!IsMouseCaptured)
+            return;
+
+        var position = RenderStart + e.GetPosition(MainCanvas).X / MainCanvas.ActualWidth * RenderDuration;
+
+        if (position < RenderStart)
+            position = RenderStart;
+
+        if (position > RenderStart + RenderDuration)
+            position = RenderStart + RenderDuration;
+
+        SelectionLastPoint = position;
+        SelectionUpdated?.Invoke(this, new WrappedValueEvent<TimeSpan>(position));
+    }
+
+    private void UserControl_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        ReleaseMouseCapture();
+    }
+
+    private void UserControl_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (!CaptureMouse())
+            return;
+
+        var position = RenderStart + e.GetPosition(MainCanvas).X / MainCanvas.ActualWidth * RenderDuration;
+
+        if (position < RenderStart)
+            position = RenderStart;
+
+        if (position > RenderStart + RenderDuration)
+            position = RenderStart + RenderDuration;
+
+        SelectionFirstPoint = position;
+        SelectionStarted?.Invoke(this, new WrappedValueEvent<TimeSpan>(position));
     }
 }

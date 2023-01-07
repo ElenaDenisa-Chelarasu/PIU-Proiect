@@ -32,6 +32,12 @@ public partial class PlayIndicator : UserControl
     public static readonly DependencyProperty TotalDurationProperty
         = DependencyProperty.Register(nameof(TotalDuration), typeof(TimeSpan), typeof(PlayIndicator), new UIPropertyMetadata(TimeSpan.Zero, OnPropertyChanged));
 
+    public static readonly DependencyProperty SelectionFirstPointProperty
+        = DependencyProperty.Register(nameof(SelectionFirstPoint), typeof(TimeSpan?), typeof(PlayIndicator), new UIPropertyMetadata(TimeSpan.FromSeconds(0), OnPropertyChanged));
+
+    public static readonly DependencyProperty SelectionLastPointProperty
+        = DependencyProperty.Register(nameof(SelectionLastPoint), typeof(TimeSpan?), typeof(PlayIndicator), new UIPropertyMetadata(TimeSpan.FromSeconds(0), OnPropertyChanged));
+
     public TimeSpan PlayPosition
     {
         get => (TimeSpan)GetValue(PlayPositionProperty);
@@ -56,6 +62,18 @@ public partial class PlayIndicator : UserControl
         set => SetValue(TotalDurationProperty, value);
     }
 
+    public TimeSpan? SelectionFirstPoint
+    {
+        get => (TimeSpan?)GetValue(SelectionFirstPointProperty);
+        set => SetValue(SelectionFirstPointProperty, value);
+    }
+
+    public TimeSpan? SelectionLastPoint
+    {
+        get => (TimeSpan?)GetValue(SelectionLastPointProperty);
+        set => SetValue(SelectionLastPointProperty, value);
+    }
+
     public PlayIndicator()
     {
         InitializeComponent();
@@ -72,34 +90,59 @@ public partial class PlayIndicator : UserControl
     private void UpdatePlayIndicator()
     {
         // Update the play position bar
+        {
+            PlayPositionPoly.Points.Clear();
 
-        PlayPositionPoly.Points.Clear();
+            TimeSpan clampedPosition = TimeSpan.FromSeconds(Math.Clamp(PlayPosition.TotalSeconds, 0, TotalDuration.TotalSeconds));
 
-        TimeSpan clampedPosition = TimeSpan.FromSeconds(Math.Clamp(PlayPosition.TotalSeconds, 0, TotalDuration.TotalSeconds));
+            double xpos = PlayIndicatorCanvas.ActualWidth * clampedPosition / TotalDuration;
 
-        double xpos = PlayIndicatorCanvas.ActualWidth * clampedPosition / TotalDuration;
-
-        PlayPositionPoly.Points.Clear();
-        PlayPositionPoly.Points.Add(new(xpos, 0));
-        PlayPositionPoly.Points.Add(new(xpos, PlayIndicatorCanvas.ActualHeight));
-        PlayPositionPoly.Points.Add(new(xpos + 1, PlayIndicatorCanvas.ActualHeight));
-        PlayPositionPoly.Points.Add(new(xpos + 1, 0));
+            PlayPositionPoly.Points.Clear();
+            PlayPositionPoly.Points.Add(new(xpos, 0));
+            PlayPositionPoly.Points.Add(new(xpos, PlayIndicatorCanvas.ActualHeight));
+            PlayPositionPoly.Points.Add(new(xpos + 1, PlayIndicatorCanvas.ActualHeight));
+            PlayPositionPoly.Points.Add(new(xpos + 1, 0));
+        }
 
         // Now update the visible sample area
+        {
+            PlayAreaPoly.Points.Clear();
 
-        PlayAreaPoly.Points.Clear();
+            TimeSpan clampedStart = TimeSpan.FromSeconds(Math.Clamp(RenderStart.TotalSeconds, 0, TotalDuration.TotalSeconds));
+            TimeSpan clampedEnd = TimeSpan.FromSeconds(Math.Clamp((RenderStart + RenderDuration).TotalSeconds, 0, TotalDuration.TotalSeconds));
 
-        TimeSpan clampedStart = TimeSpan.FromSeconds(Math.Clamp(RenderStart.TotalSeconds, 0, TotalDuration.TotalSeconds));
-        TimeSpan clampedEnd = TimeSpan.FromSeconds(Math.Clamp((RenderStart + RenderDuration).TotalSeconds, 0, TotalDuration.TotalSeconds));
+            double xposStart = PlayIndicatorCanvas.ActualWidth * clampedStart / TotalDuration;
+            double xposEnd = PlayIndicatorCanvas.ActualWidth * clampedEnd / TotalDuration;
 
-        double xposStart = PlayIndicatorCanvas.ActualWidth * clampedStart / TotalDuration;
-        double xposEnd = PlayIndicatorCanvas.ActualWidth * clampedEnd / TotalDuration;
+            PlayAreaPoly.Points.Clear();
+            PlayAreaPoly.Points.Add(new(xposStart, 0));
+            PlayAreaPoly.Points.Add(new(xposStart, PlayIndicatorCanvas.ActualHeight));
+            PlayAreaPoly.Points.Add(new(xposEnd, PlayIndicatorCanvas.ActualHeight));
+            PlayAreaPoly.Points.Add(new(xposEnd, 0));
+        }
 
-        PlayAreaPoly.Points.Clear();
-        PlayAreaPoly.Points.Add(new(xposStart, 0));
-        PlayAreaPoly.Points.Add(new(xposStart, PlayIndicatorCanvas.ActualHeight));
-        PlayAreaPoly.Points.Add(new(xposEnd, PlayIndicatorCanvas.ActualHeight));
-        PlayAreaPoly.Points.Add(new(xposEnd, 0));
+        // Now update the selection area
+        {
+            if (SelectionFirstPoint == null || SelectionLastPoint == null)
+                return;
+
+            (var selectionStart, var selectionEnd) = (SelectionFirstPoint, SelectionLastPoint);
+
+            if (SelectionFirstPoint > SelectionLastPoint)
+                (selectionStart, selectionEnd) = (selectionEnd, selectionStart);
+
+            TimeSpan clampedStart = TimeSpan.FromSeconds(Math.Clamp(selectionStart.Value.TotalSeconds, 0, TotalDuration.TotalSeconds));
+            TimeSpan clampedEnd = TimeSpan.FromSeconds(Math.Clamp(selectionEnd.Value.TotalSeconds, 0, TotalDuration.TotalSeconds));
+
+            double xposStart = ActualWidth * clampedStart / TotalDuration;
+            double xposEnd = ActualWidth * clampedEnd / TotalDuration;
+
+            SelectionPoly.Points.Clear();
+            SelectionPoly.Points.Add(new(xposStart, 0));
+            SelectionPoly.Points.Add(new(xposStart, ActualHeight));
+            SelectionPoly.Points.Add(new(xposEnd, ActualHeight));
+            SelectionPoly.Points.Add(new(xposEnd, 0));
+        }
     }
 
 }

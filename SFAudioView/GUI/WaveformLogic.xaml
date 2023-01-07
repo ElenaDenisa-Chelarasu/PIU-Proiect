@@ -8,9 +8,13 @@
              MinWidth="50"
              MinHeight="20"
              Background="White"
-             SizeChanged="UserControl_SizeChanged">
+             SizeChanged="UserControl_SizeChanged"
+             MouseDown="UserControl_MouseDown"
+             MouseUp="UserControl_MouseUp"
+             MouseMove="UserControl_MouseMove">
     <Canvas x:Name="MainCanvas">
-        <Polygon x:Name="WaveformPolygon" Fill="Blue"></Polygon>
-        <Polygon x:Name="PlayPositionPolygon" Fill="Black"></Polygon>
+        <Polygon x:Name="SelectionPolygon" Fill="#32FFFF00" Stroke="#B0FF0000" StrokeThickness="1"/>
+        <Polygon x:Name="WaveformPolygon" Fill="Blue"/>
+        <Polygon x:Name="PlayPositionPolygon" Fill="Black"/>
     </Canvas>
 </UserControl>

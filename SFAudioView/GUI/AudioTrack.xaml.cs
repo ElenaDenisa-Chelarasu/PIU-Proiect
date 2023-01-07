@@ -58,6 +58,9 @@ public partial class AudioTrack : UserControl
         set => SetValue(RenderDurationProperty, value);
     }
 
+    public event EventHandler<WrappedValueEvent<TimeSpan>>? SelectionStarted;
+    public event EventHandler<WrappedValueEvent<TimeSpan>>? SelectionUpdated;
+
     public AudioTrack()
     {
         InitializeComponent();
@@ -68,5 +71,15 @@ public partial class AudioTrack : UserControl
     private void RemoveTrack_Click(object sender, RoutedEventArgs e)
     {
         TrackRemoved?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void WaveformLeft_SelectionStarted(object sender, WrappedValueEvent<TimeSpan> e)
+    {
+        SelectionStarted?.Invoke(sender, e);
+    }
+
+    private void WaveformLeft_SelectionUpdated(object sender, WrappedValueEvent<TimeSpan> e)
+    {
+        SelectionUpdated?.Invoke(sender, e);
     }
 }
