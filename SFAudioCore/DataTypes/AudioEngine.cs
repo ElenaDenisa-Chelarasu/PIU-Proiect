@@ -211,6 +211,11 @@ public class AudioEngine
 
     public void RenderInto(int sampleStart, int sampleEnd, float[] floatData)
     {
+        if (sampleStart < 0 || sampleStart > sampleEnd)
+        {
+            throw new InvalidOperationException("Invalid args");
+        }
+
         if (floatData.Length / Channels != sampleEnd - sampleStart)
         {
             throw new InvalidOperationException("Badly sized float data.");
@@ -219,11 +224,6 @@ public class AudioEngine
         if (sampleStart >= SampleCount)
         {
             return;
-        }
-
-        if (sampleStart < 0 || sampleStart > sampleEnd)
-        {
-            throw new InvalidOperationException("Invalid args");
         }
 
         if (sampleEnd >= SampleCount)
@@ -305,7 +305,7 @@ public class AudioEngine
                                 float value = *(aPtr + sampleIndex);
 
                                 *(fPtr + dataIndex) += value * leftVolumeMod;
-                                *(fPtr + dataIndex) += value * rightVolumeMod;
+                                *(fPtr + dataIndex + 1) += value * rightVolumeMod;
 
                                 dataIndex += 2;
                                 sampleIndex += 1;
