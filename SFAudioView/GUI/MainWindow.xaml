@@ -51,18 +51,14 @@
                 <MenuItem x:Name="saveMenuItem" Header="Save" InputGestureText="Ctrl+S" Click="saveMenuItem_Click"/>
                 <MenuItem x:Name="saveAsMenuItem" Header="Save as" InputGestureText="Ctrl+Shift+S" Click="saveAsMenuItem_Click"/>
                 <MenuItem x:Name="exportMenuItem" Header="Export"/>
-                <!-- TODO Add more things -->
             </MenuItem>
             <MenuItem x:Name="editMenuItem" Header="Edit">
                 <MenuItem x:Name="undoMenuItem" Header="Undo" InputGestureText="Ctrl+Z"/>
                 <MenuItem x:Name="redoMenuItem" Header="Redo" InputGestureText="Ctrl+Y"/>
-                <!-- TODO Add more things -->
             </MenuItem>
             <MenuItem x:Name="viewMenuItem" Header="View">
-                <!-- TODO Add more things -->
             </MenuItem>
             <MenuItem x:Name="tracksMenuItem" Header="Tracks">
-                <!-- TODO Add more things -->
             </MenuItem>
             <MenuItem x:Name="effectsMenuItem" Header="Effects">
                 <MenuItem Header="Amplify..." Click="Amplify_Click"/>
@@ -71,15 +67,12 @@
                 <MenuItem x:Name="silenceMenuItem" Header="Silence"/>
                 <MenuItem x:Name="whiteNoiseMenuItem" Header="White noise"/>
                 <MenuItem x:Name="waveMenuItem" Header="Wave"/>
-                <!-- TODO Add more things -->
             </MenuItem>
             <MenuItem x:Name="toolsMenuItem" Header="Tools">
-                <!-- TODO Add more things -->
             </MenuItem>
             <MenuItem Header="Help">
                 <MenuItem x:Name="helpMenuItem" Header="Open Help Page" InputGestureText="Ctrl+F1"/>
                 <MenuItem x:Name="aboutMenuItem" Header="About" Click="aboutMenuItem_Click"/>
-                <!-- TODO Add more things -->
             </MenuItem>
         </Menu>
         <StatusBar DockPanel.Dock="Bottom">
