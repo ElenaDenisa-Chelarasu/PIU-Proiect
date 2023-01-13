@@ -58,7 +58,10 @@ public partial class MainWindow : GlobalAudioSelectionWindowBase
     {
         var open = new OpenFileDialog
         {
-            Filter = "Vorbis File (*.ogg)|*.ogg;|Wave File (*.wav)|*.wav;"
+            Filter =
+                "Vorbis File (*.ogg)|*.ogg;" +
+                "|Wave File (*.wav)|*.wav;" +
+                "|MP3 File (*.mp3)|*.mp3;"
         };
 
         if (open.ShowDialog() != true)
