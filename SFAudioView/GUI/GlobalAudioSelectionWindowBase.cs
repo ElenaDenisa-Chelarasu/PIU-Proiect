@@ -12,7 +12,7 @@ public class GlobalAudioSelectionWindowBase : Window
 {
     // This is needed because you can't use dependency properties
     // defined in .xaml.cs from the .xaml of the same class
-    // It's a crappy workaround, but I haven't found anything better
+    // It's a bad workaround, but I haven't found anything better
 
     public static readonly DependencyProperty SelectionStateProperty
         = DependencyProperty.Register(nameof(SelectionState), typeof(SelectionState), typeof(GlobalAudioSelectionWindowBase), new UIPropertyMetadata(null, OnPropertyChanged));

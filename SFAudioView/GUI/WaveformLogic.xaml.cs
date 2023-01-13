@@ -153,7 +153,7 @@ public partial class WaveformLogic : UserControl
             return;
 
         // CACHE THE GODDAMN DEPENDENCY PROPERTY VALUE OR THE VALUES YOU GET FROM IT
-        // OTHERWISE THE PERFORMANCE GOES TO SHIT BECAUSE YOU KEEP CALLING FRAMEWORK METHODS IN THE HOT PATH LOOP
+        // OTHERWISE THE PERFORMANCE GOES BAD BECAUSE YOU KEEP CALLING FRAMEWORK METHODS IN THE HOT PATH LOOP
         AudioInstance cachedAudio = Audio;
         double actualHeight = MainCanvas.ActualHeight;
         double actualWidth = MainCanvas.ActualWidth;

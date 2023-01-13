@@ -215,7 +215,7 @@ public partial class MainWindow : GlobalAudioSelectionWindowBase
     {
         if (SelectionState == null)
         {
-            MessageBox.Show("Select some audio first!");
+            MessageBox.Show("Select audio first!");
             return;
         }
 

@@ -237,7 +237,7 @@ public class AudioEngine
         int fillStart = playingOffset * Channels;
         int fillEnd = (playingOffset + samples) * Channels;
 
-        // Mix some shit
+        // Mix some
         foreach (var audio in _audio)
         {
             // We can only mix in samples that are shared by both intervals
