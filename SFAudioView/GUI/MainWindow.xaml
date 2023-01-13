@@ -6,7 +6,7 @@
                                   xmlns:vm="clr-namespace:SFAudioView.ViewModels"
                                   xmlns:g="clr-namespace:SFAudioView.GUI" xmlns:i="http://schemas.microsoft.com/xaml/behaviors" xmlns:datatypes="clr-namespace:SFAudioCore.DataTypes;assembly=SFAudioCore"
                                   mc:Ignorable="d"
-                                  Title="MainWindow"
+                                  Title="SimpleAndFastAudio"
                                   Height="450"
                                   Width="800"
                                   WindowStartupLocation="CenterScreen"
