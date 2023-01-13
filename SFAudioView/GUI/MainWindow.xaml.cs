@@ -47,7 +47,7 @@ public partial class MainWindow : GlobalAudioSelectionWindowBase
     public event EventHandler<WrappedValueEvent<string>>? FileSaved;
     public event EventHandler<WrappedValueEvent<AudioInstance>>? TrackRemoved;
     public event EventHandler<WrappedValueEvent<SelectionUpdate?>>? SelectionUpdated;
-    public event EventHandler? EffectUnamplify;
+    public event EventHandler<WrappedValueEvent<double>>? EffectAmplify;
 
     /// <summary>
     /// Deschide un fisier de tip wav si ruleaza impicit
@@ -211,8 +211,19 @@ public partial class MainWindow : GlobalAudioSelectionWindowBase
         return null;
     }
 
-    private void MenuItem_Click(object sender, RoutedEventArgs e)
+    private void Amplify_Click(object sender, RoutedEventArgs e)
     {
-        EffectUnamplify?.Invoke(this, EventArgs.Empty);
+        if (SelectionState == null)
+        {
+            MessageBox.Show("Select some audio first!");
+            return;
+        }
+
+        var dialog = new AmplifyEffectDialog();
+
+        if (!dialog.ShowDialog().GetValueOrDefault(false))
+            return;
+
+        EffectAmplify?.Invoke(this, new WrappedValueEvent<double>(dialog.Result));
     }
 }
